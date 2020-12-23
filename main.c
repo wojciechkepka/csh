@@ -33,12 +33,14 @@ static struct termios ORIG_TERM_SETTINGS;
 int csh_cd(char **args);
 int csh_help(char **args);
 int csh_exit(char **args);
+int csh_tilde(char **args);
 
 char *builtin_commands[] =
 {
     "cd",
     "help",
     "exit",
+    "~",
 };
 
 int (*builtin_funcs[]) (char **) =
@@ -46,6 +48,7 @@ int (*builtin_funcs[]) (char **) =
     &csh_cd, 
     &csh_help, 
     &csh_exit, 
+    &csh_tilde,
 };
 
 /* sets terminal back to original settings.
@@ -69,6 +72,52 @@ void csh_enable_raw_mode()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
+char *csh_expand_tilde(char *path)
+{
+    char *expanded = malloc(sizeof(USERHOME) + sizeof(path));
+    if (!expanded)
+    {
+        fprintf(stderr, "failed to allocate memory to expand path");
+        return NULL;
+    }
+
+    strcat(expanded, USERHOME);
+    strcat(expanded, path + 1); // skip ~ 
+
+    return expanded;
+}
+
+void _csh_cd(char *arg)
+{
+    char *p;
+    if (arg[0] == '~')
+    {
+        p = csh_expand_tilde(arg);
+        if (chdir(p) != 0)
+        {
+            perror("csh");
+        }
+        free(p);
+    }
+    else
+    {
+        p = arg;
+        if (chdir(p) != 0)
+        {
+            perror("csh");
+        }
+    }
+
+}
+
+int csh_tilde(char **args)
+{
+    fprintf(stdout, "%s\n", USERHOME);
+    _csh_cd(USERHOME);
+
+    return 1;
+}
+
 /* builtin implementation of cd command.
  *
  * @param args arguments to call cd with.
@@ -77,14 +126,11 @@ int csh_cd(char **args)
 {
     if (args[1] == NULL)
     {
-        fprintf(stderr, "cd: expected argument\n");
+        _csh_cd(USERHOME);
     }
     else
     {
-        if (chdir(args[1]) != 0)
-        {
-            perror("csh");
-        }
+        _csh_cd(args[1]);
     }
     return 1;
 }
@@ -191,6 +237,7 @@ void csh_clear()
  * */
 char *csh_readline()
 {
+    fflush(stdin);
     int bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
     
