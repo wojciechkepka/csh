@@ -4,19 +4,29 @@
  * author: Wojciech Kępka <wojciech@wkepka.dev>
  */
 #include <stdio.h>
+#include <termios.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <limits.h>
+#include <pwd.h>
 
 #define CSH_INP_BUF_SIZE 1024
 #define CSH_TOK_BUF_SIZE 64
 #define CSH_TOK_DELIM " \t\r\n\a"
 #define CSH_BUILTIN_COUNT (sizeof(builtin_commands) / sizeof(char *))
 
+#define CTRL_C 0x03
+#define CTRL_L 0x0C
+
 static volatile int got_ctrl_c = 0;
+static char cwd[PATH_MAX];
+static char username[32];
+static int uid;
+static struct termios orig_term_settings;
 
 int csh_cd(char **args);
 int csh_help(char **args);
@@ -35,6 +45,22 @@ int (*builtin_funcs[]) (char **) =
     &csh_help, 
     &csh_exit, 
 };
+
+void csh_disable_raw_mode()
+{
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_term_settings);
+}
+
+void csh_enable_raw_mode()
+{
+    tcgetattr(STDIN_FILENO, &orig_term_settings);
+    atexit(csh_disable_raw_mode);
+
+    struct termios raw = orig_term_settings;
+    raw.c_lflag &= ~(ICANON | ECHO | ECHOK | ECHOE | ECHONL );
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+}
 
 /* builtin implementation of cd command.
  *
@@ -85,6 +111,38 @@ int csh_exit(char **args)
     return 0;
 }
 
+void csh_set_cwd()
+{
+    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(stderr, "failed to get current working directory\n");
+    }
+}
+
+void csh_set_username()
+{
+    struct passwd *u;
+    u = getpwuid(getuid());
+    strcpy(username, u->pw_name);
+}
+
+void csh_set_username_if_changed()
+{
+    if (getuid() != uid)
+    {
+        csh_set_username();
+    }
+}
+
+void csh_set_uid()
+{
+    uid = getuid();
+}
+
+void csh_clear()
+{
+}
+
 /* csh_readline - reads from stdin character by character until EOF or '\n' is encountered. By default
  * allocates a buffer of CSH_INP_BUF_SIZE size and extends it as needed. It is the callers duty to
  * free allocated buffer after use.
@@ -106,17 +164,26 @@ char *csh_readline()
     }
 
     int ch, position = 0;
+
+    csh_enable_raw_mode();
     while (true)
     {
         ch = getchar();
+        putc(ch, stdout);
 
-        if (got_ctrl_c == 1)
+        if (ch == CTRL_L) // ctrl + l
         {
-            return buf;
+            csh_clear();
+        }
+
+        if (ch == CTRL_C)
+        {
+            return NULL;
         }
 
         if (ch == EOF || ch == '\n')
         {
+            csh_disable_raw_mode();
             buf[position] = '\0';
             return buf;
         }
@@ -238,40 +305,52 @@ int csh_execute(char **args)
     return csh_launch(args);
 }
 
+void csh_print_prompt()
+{
+    printf("%s@%s > ", username, cwd);
+}
+
+
+void csh_init()
+{
+    csh_set_uid();
+    csh_set_username();
+    csh_set_cwd();
+}
+
 /* main loop of csh
  */
 void csh_loop()
 {
+    csh_init();
+
     char *line;
     char **args;
     int status;
 
     do
     {
-        printf("> ");
+        csh_set_uid();
+        csh_set_username_if_changed();
+        csh_set_cwd();
+        csh_print_prompt();
         line = csh_readline();
-        
-        if (got_ctrl_c == 1) {
-            got_ctrl_c = 0;
-            goto cleanup;
+        if (line == NULL)
+        {
+            continue;
         }
-
+        
         args = csh_split_line(line);
         status = csh_execute(args);
 
-cleanup:
-        free(line);
         free(args);
+        free(line);
     }
     while (status);
 }
 
 void csh_sigint_handler(int i) {
     got_ctrl_c = 1;
-    printf("OUCH, did you hit Ctrl-C?\n"
-            "Do you really want to quit? [y/n] ");
-    char c;
-     c = getchar();
 }
 
 int main()
