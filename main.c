@@ -21,12 +21,14 @@
 
 #define CTRL_C 0x03
 #define CTRL_L 0x0C
+const char *CLEAR_SCREEN_ANSI = "\e[1;1H\e[2J";
 
 static volatile int got_ctrl_c = 0;
-static char cwd[PATH_MAX];
-static char username[32];
-static int uid;
-static struct termios orig_term_settings;
+static char CWD[PATH_MAX];
+static char USERNAME[32];
+static char USERHOME[PATH_MAX];
+static int UID;
+static struct termios ORIG_TERM_SETTINGS;
 
 int csh_cd(char **args);
 int csh_help(char **args);
@@ -46,20 +48,25 @@ int (*builtin_funcs[]) (char **) =
     &csh_exit, 
 };
 
+/* sets terminal back to original settings.
+ */
 void csh_disable_raw_mode()
 {
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_term_settings);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &ORIG_TERM_SETTINGS);
 }
 
+
+/* sets terminal into raw mode storing old settings in ORIG_TERM_SETTINGS.
+ */
 void csh_enable_raw_mode()
 {
-    tcgetattr(STDIN_FILENO, &orig_term_settings);
+    tcgetattr(STDIN_FILENO, &ORIG_TERM_SETTINGS);
     atexit(csh_disable_raw_mode);
 
-    struct termios raw = orig_term_settings;
-    raw.c_lflag &= ~(ICANON | ECHO | ECHOK | ECHOE | ECHONL );
+    struct termios raw = ORIG_TERM_SETTINGS;
+    raw.c_lflag &= ~(ICANON | ECHO);
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &raw);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
 /* builtin implementation of cd command.
@@ -111,36 +118,66 @@ int csh_exit(char **args)
     return 0;
 }
 
+/* sets value of UID to current uid of this process
+ */
+void csh_set_uid()
+{
+    UID = getuid();
+}
+
+/* aquires cwd of this process and stores it.
+ */
 void csh_set_cwd()
 {
-    if (getcwd(cwd, sizeof(cwd)) == NULL)
+    if (getcwd(CWD, sizeof(CWD)) == NULL)
     {
         fprintf(stderr, "failed to get current working directory\n");
     }
 }
 
-void csh_set_username()
+void csh_get_user_home(char *home)
+{
+
+    struct passwd *u;
+    u = getpwuid(getuid());
+    strcpy(home, u->pw_dir); 
+}
+
+void csh_get_username(char *name)
 {
     struct passwd *u;
     u = getpwuid(getuid());
-    strcpy(username, u->pw_name);
+    strcpy(name, u->pw_name);
 }
 
+/* gets full username of this process uid and stores it.
+ */
+void csh_set_username()
+{
+    csh_get_username(USERNAME);
+}
+
+void csh_set_user_home()
+{
+    csh_get_user_home(USERHOME);
+}
+
+/* updates username if the UID changed.
+ */
 void csh_set_username_if_changed()
 {
-    if (getuid() != uid)
+    if (getuid() != UID)
     {
+        csh_set_uid();
         csh_set_username();
     }
 }
 
-void csh_set_uid()
-{
-    uid = getuid();
-}
-
+/* clears terminal screen by sending ANSI clear screen escape code.
+ */
 void csh_clear()
 {
+    write(STDIN_FILENO, CLEAR_SCREEN_ANSI, 12);
 }
 
 /* csh_readline - reads from stdin character by character until EOF or '\n' is encountered. By default
@@ -174,6 +211,7 @@ char *csh_readline()
         if (ch == CTRL_L) // ctrl + l
         {
             csh_clear();
+            return NULL;
         }
 
         if (ch == CTRL_C)
@@ -305,17 +343,22 @@ int csh_execute(char **args)
     return csh_launch(args);
 }
 
+/* prints out prompt to stdout
+ */
 void csh_print_prompt()
 {
-    printf("%s@%s > ", username, cwd);
+    printf("%s@%s > ", USERNAME, CWD);
 }
 
 
+/* initializes static variables like uid, username and cwd
+ */
 void csh_init()
 {
     csh_set_uid();
     csh_set_username();
     csh_set_cwd();
+    csh_set_user_home();
 }
 
 /* main loop of csh
