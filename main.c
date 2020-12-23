@@ -20,6 +20,7 @@
 #define CSH_BUILTIN_COUNT (sizeof(builtin_commands) / sizeof(char *))
 
 #define CTRL_C 0x03
+#define BCKSP 0x08
 #define CTRL_L 0x0C
 const char *CLEAR_SCREEN_ANSI = "\e[1;1H\e[2J";
 
@@ -67,7 +68,9 @@ void csh_enable_raw_mode()
     atexit(csh_disable_raw_mode);
 
     struct termios raw = ORIG_TERM_SETTINGS;
-    raw.c_lflag &= ~(ICANON | ECHO);
+    raw.c_lflag &= ~(ICANON);
+    raw.c_cc[VMIN] = 1;
+    raw.c_cc[VTIME] = 0;
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
@@ -237,7 +240,6 @@ void csh_clear()
  * */
 char *csh_readline()
 {
-    fflush(stdin);
     int bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
     
@@ -253,7 +255,6 @@ char *csh_readline()
     while (true)
     {
         ch = getchar();
-        putc(ch, stdout);
 
         if (ch == CTRL_L) // ctrl + l
         {
