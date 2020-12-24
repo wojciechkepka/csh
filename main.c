@@ -20,9 +20,10 @@
 #define CSH_BUILTIN_COUNT (sizeof(builtin_commands) / sizeof(char *))
 
 #define CTRL_C 0x03
-#define BCKSP 0x08
+#define DEL 0x07F
 #define CTRL_L 0x0C
 const char *CLEAR_SCREEN_ANSI = "\e[1;1H\e[2J";
+const char *CLEAR_BACK_CHAR = "\b\b\b   \b\b\b";
 
 static volatile int got_ctrl_c = 0;
 static char CWD[PATH_MAX];
@@ -260,6 +261,13 @@ char *csh_readline()
         {
             csh_clear();
             return NULL;
+        }
+
+        if (ch == DEL)
+        {
+            write(fileno(stdin), CLEAR_BACK_CHAR, 9); // rewind ^? + last character
+            position -= 1;
+            continue;
         }
 
         if (ch == CTRL_C)
