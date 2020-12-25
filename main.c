@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <termios.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -187,17 +188,32 @@ void csh_set_cwd()
 
 void csh_get_user_home(char *home)
 {
-
     struct passwd *u;
+    errno = 0;
     u = getpwuid(getuid());
-    strcpy(home, u->pw_dir); 
+    if (u == NULL)
+    {
+        fprintf(stderr, "Error: failed to get passwd database entry of current user.");
+    }
+    else
+    {
+        strcpy(home, u->pw_dir);
+    }
 }
 
 void csh_get_username(char *name)
 {
     struct passwd *u;
+    errno = 0;
     u = getpwuid(getuid());
-    strcpy(name, u->pw_name);
+    if (u == NULL)
+    {
+        fprintf(stderr, "Error: failed to get passwd database entry of current user.");
+    }
+    else
+    {
+        strcpy(name, u->pw_name);
+    }
 }
 
 /* gets full username of this process uid and stores it.
