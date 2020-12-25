@@ -398,6 +398,8 @@ char **csh_split_line(char *line)
  */
 int csh_launch(char **args)
 {
+    if (strcmp(args[0], "\0") == 0) return 1;
+
     pid_t pid, wpid;
     int status;
 
