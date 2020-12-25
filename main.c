@@ -113,7 +113,7 @@ void _csh_cd(char *path)
         p = csh_expand_tilde(path);
         if (chdir(p) != 0)
         {
-            perror("csh");
+            perror(p);
         }
         free(p);
     }
@@ -121,7 +121,7 @@ void _csh_cd(char *path)
     {
         if (chdir(path) != 0)
         {
-            perror("csh");
+            perror(path);
         }
     }
 }
@@ -406,7 +406,7 @@ int csh_launch(char **args)
     {
         if (execvp(args[0], args) == -1)
         {
-            perror("csh");
+            perror(args[0]);
         }
     }
     else if (pid < 0) // error
