@@ -77,6 +77,15 @@ void csh_enable_raw_mode()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
+/* expands a path starting with `~` by allocating a new string on the heap and concating
+ * current users home with the rest of the path.
+ * 
+ * If this function fails to allocate space for new string a NULL pointer is returned
+ * and an error message is printed to stdout.
+ * 
+ * @param path a path to expand
+ * @returns expanded path
+ */
 char *csh_expand_tilde(char *path)
 {
     char *expanded = malloc(sizeof(USERHOME) + sizeof(path));
@@ -92,12 +101,16 @@ char *csh_expand_tilde(char *path)
     return expanded;
 }
 
-void _csh_cd(char *arg)
+/* internal implementation of cd builtin command.
+ *
+ * @param path a path to change directory to.
+ */
+void _csh_cd(char *path)
 {
     char *p;
-    if (arg[0] == '~')
+    if (path[0] == '~')
     {
-        p = csh_expand_tilde(arg);
+        p = csh_expand_tilde(path);
         if (chdir(p) != 0)
         {
             perror("csh");
@@ -106,15 +119,18 @@ void _csh_cd(char *arg)
     }
     else
     {
-        p = arg;
-        if (chdir(p) != 0)
+        if (chdir(path) != 0)
         {
             perror("csh");
         }
     }
-
 }
 
+/* bultin command ~. It displays users home directory and changes CWD to it.
+ *
+ * @param args arguments to call ~ with
+ * @returns always 1 to indicate another loop
+ */
 int csh_tilde(char **args)
 {
     fprintf(stdout, "%s\n", USERHOME);
@@ -126,6 +142,7 @@ int csh_tilde(char **args)
 /* builtin implementation of cd command.
  *
  * @param args arguments to call cd with.
+ * @returns always 1 to indicate another loop
  */
 int csh_cd(char **args)
 {
@@ -143,6 +160,7 @@ int csh_cd(char **args)
 /* builtin implementation of help command.
  *
  * @param args arguments to call help with.
+ * @returns always 1 to indicate another loop
  */
 int csh_help(char **args)
 {
@@ -163,6 +181,7 @@ int csh_help(char **args)
 /* builtin implementation of exit command.
  *
  * @param args arguments to call exit with.
+ * @returns always 0 to indicate end of the loop
  */
 int csh_exit(char **args)
 {
@@ -186,6 +205,10 @@ void csh_set_cwd()
     }
 }
 
+/* gets this process uid home directory.
+ *
+ * On error prints the error to stdout and assigns NULL to passed in pointer.
+ */
 void csh_get_user_home(char *home)
 {
     struct passwd *u;
@@ -194,6 +217,7 @@ void csh_get_user_home(char *home)
     if (u == NULL)
     {
         fprintf(stderr, "Error: failed to get passwd database entry of current user.");
+        home = NULL;
     }
     else
     {
@@ -201,6 +225,10 @@ void csh_get_user_home(char *home)
     }
 }
 
+/* gets this process uid username.
+ *
+ * On error prints the error to stdout and assigns NULL to passed in pointer.
+ */
 void csh_get_username(char *name)
 {
     struct passwd *u;
@@ -209,6 +237,7 @@ void csh_get_username(char *name)
     if (u == NULL)
     {
         fprintf(stderr, "Error: failed to get passwd database entry of current user.");
+        name = NULL;
     }
     else
     {
@@ -216,13 +245,15 @@ void csh_get_username(char *name)
     }
 }
 
-/* gets full username of this process uid and stores it.
+/* gets full username of this process uid and stores it in USERNAME var.
  */
 void csh_set_username()
 {
     csh_get_username(USERNAME);
 }
 
+/* gets this process uid home directory and stores it in USERHOME var.
+ */
 void csh_set_user_home()
 {
     csh_get_user_home(USERHOME);
@@ -363,7 +394,7 @@ char **csh_split_line(char *line)
 /* launches specified command command with args as child process.
  *
  * @param args - an array with executable name as first element and arguments as rest
- * @returns always 1
+ * @returns always 1 to indicate another loop
  */
 int csh_launch(char **args)
 {
