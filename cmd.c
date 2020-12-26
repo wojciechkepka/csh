@@ -40,10 +40,6 @@ char *csh_expand_tilde(char *path)
     return expanded;
 }
 
-/* internal implementation of cd builtin command.
- *
- * @param path a path to change directory to.
- */
 void _csh_cd(char *path)
 {
     char *p;
@@ -65,11 +61,6 @@ void _csh_cd(char *path)
     }
 }
 
-/* bultin command ~. It displays users home directory and changes CWD to it.
- *
- * @param args arguments to call ~ with
- * @returns always 1 to indicate another loop
- */
 int csh_tilde(char **args)
 {
     fprintf(stdout, "%s\n", USERHOME_p);
@@ -78,11 +69,6 @@ int csh_tilde(char **args)
     return 1;
 }
 
-/* builtin implementation of cd command.
- *
- * @param args arguments to call cd with.
- * @returns always 1 to indicate another loop
- */
 int csh_cd(char **args)
 {
     if (args[1] == NULL)
@@ -96,11 +82,6 @@ int csh_cd(char **args)
     return 1;
 }
 
-/* builtin implementation of help command.
- *
- * @param args arguments to call help with.
- * @returns always 1 to indicate another loop
- */
 int csh_help(char **args)
 {
     printf(
@@ -117,21 +98,11 @@ int csh_help(char **args)
     return 1;
 }
 
-/* builtin implementation of exit command.
- *
- * @param args arguments to call exit with.
- * @returns always 0 to indicate end of the loop
- */
 int csh_exit(char **args)
 {
     return 0;
 }
 
-/* launches specified command command with args as child process.
- *
- * @param args - an array with executable name as first element and arguments as rest
- * @returns always 1 to indicate another loop
- */
 int csh_launch(char **args)
 {
     if (strcmp(args[0], "\0") == 0) return 1;
@@ -163,11 +134,6 @@ int csh_launch(char **args)
     return 1;
 }
 
-/* executes arguments parsed from a line of input. This function first searches for matches
- * in builtin commands. If no match is found args are executed as a command.
- *
- * @param args - command with arguments to run
- */
 int csh_execute(char **args)
 {
     if (args[0] == NULL) return 1;

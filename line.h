@@ -25,7 +25,26 @@ const char ARROW_DOWN[3];
 const char ARROW_RIGHT[3];
 const char ARROW_LEFT[3];
 
+/* reads from stdin character by character until EOF or '\n' is encountered. By default
+ * allocates a buffer of CSH_INP_BUF_SIZE size and extends it as needed. It is the callers duty to
+ * free allocated buffer after use.
+ *
+ * This function may quit the main process if there is an error with allocation or reallocation of
+ * the input buffer.
+ *
+ * @returns a line of input from stdin
+ * */
 char *csh_readline();
+
+/* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
+ * will change into something more robust that handles "" and other nuances in the future.
+ *
+ * This function may quit the main process if there is an error with allocation or reallocation of
+ * the token buffer.
+ *
+ * @param line a line of input to split up
+ * @return parsed tokens
+ */
 char **csh_split_line(char *line);
 
 #endif // CSH_LINEH
