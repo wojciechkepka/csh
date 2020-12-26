@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "path.h"
 
 #define CSH_BUILTIN_COUNT 4
 

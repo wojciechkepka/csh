@@ -16,29 +16,6 @@ int (*builtin_funcs[]) (char **) =
     &csh_tilde,
 };
 
-/* expands a path starting with `~` by allocating a new string on the heap and concating
- * current users home with the rest of the path.
- * 
- * If this function fails to allocate space for new string a NULL pointer is returned
- * and an error message is printed to stdout.
- * 
- * @param path a path to expand
- * @returns expanded path
- */
-char *csh_expand_tilde(char *path)
-{
-    char *expanded = malloc(sizeof(*USERHOME_p) + sizeof(path));
-    if (!expanded)
-    {
-        fprintf(stderr, "failed to allocate memory to expand path");
-        return NULL;
-    }
-
-    strcat(expanded, USERHOME_p);
-    strcat(expanded, path + 1); // skip ~ 
-
-    return expanded;
-}
 
 void _csh_cd(char *path)
 {
@@ -46,6 +23,9 @@ void _csh_cd(char *path)
     if (path[0] == '~')
     {
         p = csh_expand_tilde(path);
+        if (p == NULL) {
+            return;
+        }
         if (chdir(p) != 0)
         {
             perror(p);
