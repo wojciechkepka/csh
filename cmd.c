@@ -96,6 +96,7 @@ int csh_launch(char **args)
         if (execvp(args[0], args) == -1)
         {
             perror(args[0]);
+            exit(EXIT_FAILURE);
         }
     }
     else if (pid < 0) // error
@@ -108,7 +109,7 @@ int csh_launch(char **args)
         {
             wpid = waitpid(pid, &status, WUNTRACED);
         }
-        while (!WIFEXITED(status) && ! WIFSIGNALED(status));
+        while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
     return 1;
