@@ -1,3 +1,6 @@
+#ifndef CSH_CMDH
+#define CSH_CMDH
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,3 +23,4 @@ extern const char *builtin_commands[];
 
 extern int (*builtin_funcs[]) (char **);
 
+#endif // CSH_CMDH
