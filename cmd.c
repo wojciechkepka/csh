@@ -126,3 +126,59 @@ int csh_exit(char **args)
 {
     return 0;
 }
+
+/* launches specified command command with args as child process.
+ *
+ * @param args - an array with executable name as first element and arguments as rest
+ * @returns always 1 to indicate another loop
+ */
+int csh_launch(char **args)
+{
+    if (strcmp(args[0], "\0") == 0) return 1;
+
+    pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+    if (pid == 0) // child
+    {
+        if (execvp(args[0], args) == -1)
+        {
+            perror(args[0]);
+        }
+    }
+    else if (pid < 0) // error
+    {
+        perror("csh");
+    }
+    else // parent
+    {
+        do
+        {
+            wpid = waitpid(pid, &status, WUNTRACED);
+        }
+        while (!WIFEXITED(status) && ! WIFSIGNALED(status));
+    }
+
+    return 1;
+}
+
+/* executes arguments parsed from a line of input. This function first searches for matches
+ * in builtin commands. If no match is found args are executed as a command.
+ *
+ * @param args - command with arguments to run
+ */
+int csh_execute(char **args)
+{
+    if (args[0] == NULL) return 1;
+
+    for (int i = 0; i < CSH_BUILTIN_COUNT; i++)
+    {
+        if (strcmp(args[0], builtin_commands[i]) == 0)
+        {
+            return (builtin_funcs[i])(args);
+        }
+    }
+
+    return csh_launch(args);
+}

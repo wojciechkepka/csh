@@ -12,6 +12,9 @@ int csh_cd(char **args);
 int csh_help(char **args);
 int csh_exit(char **args);
 int csh_tilde(char **args);
+/**/
+int csh_launch(char **args);
+int csh_execute(char **args);
 
 extern const char *builtin_commands[];
 
