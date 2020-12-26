@@ -3,10 +3,10 @@
 const char *CLEAR_BACK_CHAR_SEQ = "\b\b\b   \b\b\b";
 const char *ANSI_COL_RIGHT = "\e[1C";
 const char *ANSI_COL_LEFT = "\e[1D";
-const char ARROW_UP[] = {0x1b, 0x5b, 0x41};
-const char ARROW_DOWN[] = {0x1b, 0x5b, 0x42};
-const char ARROW_RIGHT[] = {0x1b, 0x5b, 0x43};
-const char ARROW_LEFT[] = {0x1b, 0x5b, 0x44};
+const int ARROW_UP = 0x41;
+const int ARROW_DOWN = 0x42;
+const int ARROW_RIGHT = 0x43;
+const int ARROW_LEFT = 0x44;
 
 char *csh_readline()
 {
@@ -24,7 +24,7 @@ char *csh_readline()
     while (true)
     {
         ch = getchar();
-        // printf("ch = `%c` %.x2\n", ch, ch);
+        // fprintf(stderr ,"ch = `%c` %.2x\n", ch, ch);
         if (ch == CTRL_D)
         {
             fflush(stdout);
@@ -55,34 +55,30 @@ char *csh_readline()
 
         if (ch == CTRL_C) return NULL;
 
-        if (ch == ARROW_UP[2])
+        if (buf[position - 2] == 0x1b && buf[position - 1] == 0x5b)
         {
-            if (buf[position - 2] == ARROW_UP[0] && buf[position - 1] == ARROW_UP[1]) {
-                position -= 3;
-                continue;
-            }
-        }
-
-        if (ch == ARROW_LEFT[2])
-        {
-            if (buf[position - 2] == ARROW_LEFT[0] && buf[position - 1] == ARROW_LEFT[1])
+            if (ch == ARROW_UP || ch == ARROW_DOWN || ch == ARROW_LEFT || ch == ARROW_RIGHT)
             {
-                if (position > 0)
+                position -= 2;
+                buf[position] = '\0';
+                max_pos = position;
+
+                if (ch == ARROW_RIGHT)
                 {
-                    write(STDIN_FILENO, ANSI_COL_LEFT, 3);
-                    fflush(stdout);
-                    fflush(stderr);
+                    write(STDIN_FILENO, ANSI_COL_RIGHT, 3);
+                    if (position < max_pos) position++;
                 }
-                continue;
-            }
-        }
 
-        if (ch == ARROW_RIGHT[2])
-        {
-            if (buf[position - 2] == ARROW_RIGHT[0] && buf[position - 1] == ARROW_RIGHT[1])
-            {
-                write(STDIN_FILENO, ANSI_COL_RIGHT, 3);
-                if (position < max_pos) position++;
+                if (ch == ARROW_LEFT)
+                {
+                    if (position > 0)
+                    {
+                        write(STDIN_FILENO, ANSI_COL_LEFT, 3);
+                        fflush(stdout);
+                        fflush(stderr);
+                    }
+                }
+
                 continue;
             }
         }
