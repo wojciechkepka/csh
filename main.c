@@ -114,7 +114,7 @@ void csh_sigint_handler(int i) {
 }
 
 void csh_sigusr_handler(int i) {
-    fprintf(stdout, "\nC you later :}");
+    printf("\nC you later :}\n");
     exit(EXIT_SUCCESS);
 }
 
