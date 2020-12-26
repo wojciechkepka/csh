@@ -36,7 +36,10 @@ char *csh_readline()
         if (ch == CTRL_L) // ctrl + l
         {
             csh_clear();
-            return NULL;
+            csh_print_prompt();
+            fflush(stdout);
+            write(STDOUT_FILENO, buf, max_pos);
+            continue;
         }
 
         if (ch == DEL)

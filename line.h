@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "term.h"
+#include "prompt.h"
 
 #define CSH_INP_BUF_SIZE 1024
 #define CSH_TOK_BUF_SIZE 64

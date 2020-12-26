@@ -22,5 +22,5 @@ void csh_enable_raw_mode()
 
 void csh_clear()
 {
-    write(STDIN_FILENO, CLEAR_SCREEN_ANSI, 12);
+    write(STDIN_FILENO, CLEAR_SCREEN_ANSI, 10);
 }
