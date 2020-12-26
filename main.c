@@ -13,6 +13,7 @@
 #include <pwd.h>
 #include "cmd.h"
 #include "line.h"
+#include "prompt.h"
 
 static volatile int got_ctrl_c = 0;
 static char CWD[PATH_MAX];
@@ -106,13 +107,6 @@ void csh_set_username_if_changed()
         csh_set_uid();
         csh_set_username();
     }
-}
-
-/* prints out prompt to stdout
- */
-void csh_print_prompt()
-{
-    printf("%s@%s > ", USERNAME, CWD);
 }
 
 void csh_sigint_handler(int i) {
