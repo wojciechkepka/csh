@@ -23,8 +23,15 @@
 #define CTRL_C 0x03
 #define DEL 0x07F
 #define CTRL_L 0x0C
+#define CTRL_D 0x04
 const char *CLEAR_SCREEN_ANSI = "\e[1;1H\e[2J";
-const char *CLEAR_BACK_CHAR = "\b\b\b   \b\b\b";
+const char *CLEAR_BACK_CHAR_SEQ = "\b\b\b   \b\b\b";
+const char *ANSI_COL_RIGHT = "\e[1C";
+const char *ANSI_COL_LEFT = "\e[1D";
+const char ARROW_UP[] = {0x1b, 0x5b, 0x41};
+const char ARROW_DOWN[] = {0x1b, 0x5b, 0x42};
+const char ARROW_RIGHT[] = {0x1b, 0x5b, 0x43};
+const char ARROW_LEFT[] = {0x1b, 0x5b, 0x44};
 
 static volatile int got_ctrl_c = 0;
 static char CWD[PATH_MAX];
@@ -61,7 +68,6 @@ void csh_disable_raw_mode()
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &ORIG_TERM_SETTINGS);
 }
 
-
 /* sets terminal into raw mode storing old settings in ORIG_TERM_SETTINGS.
  */
 void csh_enable_raw_mode()
@@ -70,7 +76,7 @@ void csh_enable_raw_mode()
     atexit(csh_disable_raw_mode);
 
     struct termios raw = ORIG_TERM_SETTINGS;
-    raw.c_lflag &= ~(ICANON);
+    raw.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK);
     raw.c_cc[VMIN] = 1;
     raw.c_cc[VTIME] = 0;
 
@@ -290,19 +296,26 @@ char *csh_readline()
 {
     int bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
-    
+
     if (!buf)
     {
         fprintf(stderr, "Error: failed to allocate input buffer");
         exit(EXIT_FAILURE);
     }
-
-    int ch, position = 0;
+    int ch, position = 0, max_pos = 0;
 
     csh_enable_raw_mode();
     while (true)
     {
         ch = getchar();
+        // printf("ch = `%c` %.x2\n", ch, ch);
+        if (ch == CTRL_D)
+        {
+            fflush(stdout);
+            fflush(stdin);
+            free(buf);
+            kill(getpid(), SIGUSR1);
+        }
 
         if (ch == CTRL_L) // ctrl + l
         {
@@ -312,24 +325,59 @@ char *csh_readline()
 
         if (ch == DEL)
         {
-            write(fileno(stdin), CLEAR_BACK_CHAR, 9); // rewind ^? + last character
-            position -= 1;
+            if (position > 0)
+            {
+                write(STDIN_FILENO, "\b \b", 3);
+                position -= 1;
+            }
+            
             continue;
         }
 
-        if (ch == CTRL_C)
+        if (ch == CTRL_C) return NULL;
+
+        if (ch == ARROW_UP[2])
         {
-            return NULL;
+            if (buf[position - 2] == ARROW_UP[0] && buf[position - 1] == ARROW_UP[1]) {
+                position -= 3;
+                continue;
+            }
+        }
+
+        if (ch == ARROW_LEFT[2])
+        {
+            if (buf[position - 2] == ARROW_LEFT[0] && buf[position - 1] == ARROW_LEFT[1])
+            {
+                if (position > 0)
+                {
+                    write(STDIN_FILENO, ANSI_COL_LEFT, 3);
+                    fflush(stdout);
+                    fflush(stderr);
+                }
+                continue;
+            }
+        }
+
+        if (ch == ARROW_RIGHT[2])
+        {
+            if (buf[position - 2] == ARROW_RIGHT[0] && buf[position - 1] == ARROW_RIGHT[1])
+            {
+                write(STDIN_FILENO, ANSI_COL_RIGHT, 3);
+                if (position < max_pos) position++;
+                continue;
+            }
         }
 
         if (ch == EOF || ch == '\n')
         {
             csh_disable_raw_mode();
             buf[position] = '\0';
+            putc('\n', stdout);
             return buf;
         }
 
         buf[position] = ch;
+        putc(ch, stdout);
         position++;
 
         if (position >= bufsize)
@@ -342,6 +390,8 @@ char *csh_readline()
                 exit(EXIT_FAILURE);
             }
         }
+
+        if (position > max_pos) max_pos = position;
     }
 }
 
@@ -414,7 +464,6 @@ int csh_launch(char **args)
     else if (pid < 0) // error
     {
         perror("csh");
-
     }
     else // parent
     {
@@ -455,11 +504,21 @@ void csh_print_prompt()
     printf("%s@%s > ", USERNAME, CWD);
 }
 
+void csh_sigint_handler(int i) {
+    got_ctrl_c = 1;
+}
+
+void csh_sigusr_handler(int i) {
+    fprintf(stdout, "\nC you later :}\0");
+    exit(EXIT_SUCCESS);
+}
 
 /* initializes static variables like uid, username and cwd
  */
 void csh_init()
 {
+    signal(SIGINT, csh_sigint_handler);
+    signal(SIGUSR1, csh_sigusr_handler);
     csh_set_uid();
     csh_set_username();
     csh_set_cwd();
@@ -497,13 +556,9 @@ void csh_loop()
     while (status);
 }
 
-void csh_sigint_handler(int i) {
-    got_ctrl_c = 1;
-}
 
 int main()
 {
-    signal(SIGINT, csh_sigint_handler);
     csh_loop();
 
     return EXIT_SUCCESS;
