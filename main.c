@@ -4,14 +4,11 @@
  * author: Wojciech Kępka <wojciech@wkepka.dev>
  */
 #include <stdio.h>
-#include <termios.h>
 #include <stdbool.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/wait.h>
-#include <signal.h>
 #include <limits.h>
 #include <pwd.h>
 #include "cmd.h"
