@@ -25,6 +25,7 @@ char *CWD_p = &(CWD[0]);
 char *USERNAME_p = &(USERNAME[0]);
 char *USERHOME_p = &(USERHOME[0]);
 int *UID_p = &UID;
+volatile int *GOT_CTRL_C_p = &got_ctrl_c;
 
 
 /* sets value of UID to current uid of this process

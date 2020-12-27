@@ -18,12 +18,24 @@ char *csh_readline()
         fprintf(stderr, "Error: failed to allocate input buffer");
         exit(EXIT_FAILURE);
     }
-    int ch, position = 0, max_pos = 0;
+    int ch, pos = 0, max_pos = 0;
+    bool was_escape = false, is_arr = false, print_ch, add_buf;
 
     csh_enable_raw_mode();
     while (true)
     {
+        print_ch = true;
+        add_buf = true;
+
+        if (*GOT_CTRL_C_p)
+        {
+            *GOT_CTRL_C_p = 0;
+            free(buf);
+            return NULL;
+        }
+
         ch = getchar();
+
         // fprintf(stderr ,"ch = `%c` %.2x\n", ch, ch);
         if (ch == CTRL_D)
         {
@@ -38,64 +50,101 @@ char *csh_readline()
             csh_clear();
             csh_print_prompt();
             fflush(stdout);
+            fflush(stdin);
             write(STDOUT_FILENO, buf, max_pos);
             continue;
         }
 
         if (ch == DEL)
         {
-            if (position > 0)
+            if (pos > 0)
             {
-                write(STDIN_FILENO, "\b \b", 3);
-                position -= 1;
+                write(STDIN_FILENO, "\b\e[s\e[0K", 8);
+                for(int c = pos - 1; c < max_pos; c++)
+                {
+                    buf[c] = buf[c+1];
+                    write(STDIN_FILENO, &buf[c+1], 1);
+                }
+                write(STDIN_FILENO, "\e[u", 3);
+                pos--;
+                max_pos--;
             }
             
             continue;
         }
 
-        if (ch == CTRL_C) return NULL;
-
-        if (buf[position - 2] == 0x1b && buf[position - 1] == 0x5b)
+        fprintf(stderr, "max = %d, esc = %d, arr = %d, ch = %.2x\n", max_pos, was_escape, is_arr, ch);
+        
+        if (is_arr)
         {
+            is_arr = false;
             if (ch == ARROW_UP || ch == ARROW_DOWN || ch == ARROW_LEFT || ch == ARROW_RIGHT)
             {
-                position -= 2;
-                buf[position] = '\0';
-                max_pos = position;
-
                 if (ch == ARROW_RIGHT)
                 {
-                    write(STDIN_FILENO, ANSI_COL_RIGHT, 3);
-                    if (position < max_pos) position++;
+                    if (pos < max_pos)
+                    {
+                        write(STDIN_FILENO, ANSI_COL_RIGHT, 4);
+                        pos++;
+                    }
                 }
 
                 if (ch == ARROW_LEFT)
                 {
-                    if (position > 0)
+                    if (pos > 0)
                     {
-                        write(STDIN_FILENO, ANSI_COL_LEFT, 3);
-                        fflush(stdout);
-                        fflush(stderr);
+                        write(STDIN_FILENO, ANSI_COL_LEFT, 4);
+                        pos--;
                     }
                 }
-
+                goto fix_pos;
                 continue;
             }
+            else
+            { // its not an arrow key so write the escape sequence and [ to stdout
+                write(STDIN_FILENO, "\e[", 2);
+                buf[pos++] = 0x1b;
+                buf[pos++] = 0x5b;
+            }
+        }
+
+        if (was_escape && ch == 0x5b)
+        {
+            was_escape = false;
+            is_arr = true;
+            print_ch = false;
+            add_buf = false;
+        }
+
+        if (was_escape && ch != 0x5b)
+        { //its not an arrow so print \e to stdout
+            was_escape = false;
+            write(STDIN_FILENO, "\e", 1);
+            buf[pos++] = 0x1b;
+        }
+
+        if (ch == 0x1b)
+        {
+            was_escape = true;
+            print_ch = false;
+            add_buf = false;
         }
 
         if (ch == EOF || ch == '\n')
         {
             csh_disable_raw_mode();
-            buf[position] = '\0';
-            putc('\n', stdout);
+            buf[max_pos + 1] = '\0';
+            fflush(stdin);
+            fflush(stdout);
+            write(STDIN_FILENO, "\n", 1);
             return buf;
         }
 
-        buf[position] = ch;
-        putc(ch, stdout);
-        position++;
+        if (add_buf) buf[pos++] = ch;
 
-        if (position >= bufsize)
+        if (print_ch) write(STDIN_FILENO, &ch, 1);
+
+        if (pos >= bufsize)
         {
             bufsize += CSH_INP_BUF_SIZE;
             buf = realloc(buf, bufsize);
@@ -106,7 +155,8 @@ char *csh_readline()
             }
         }
 
-        if (position > max_pos) max_pos = position;
+fix_pos:
+        if (pos > max_pos) max_pos = pos;
     }
 }
 

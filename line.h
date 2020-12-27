@@ -18,6 +18,7 @@
 #define CTRL_L 0x0C
 #define CTRL_D 0x04
 
+extern volatile int *GOT_CTRL_C_p;
 const char *CLEAR_BACK_CHAR_SEQ;
 const char *ANSI_COL_RIGHT;
 const char *ANSI_COL_LEFT;
