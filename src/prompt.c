@@ -23,7 +23,7 @@ void csh_prompt_init(int flags)
     }
     else
     {
-        PROMPT->user = "\0";
+        PROMPT->user = NULL;
     }
     
 

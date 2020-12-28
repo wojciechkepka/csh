@@ -19,7 +19,10 @@ typedef struct {
     int flags;
 } prompt_t;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
 static prompt_t *PROMPT;
+#pragma GCC diagnostic pop
 
 /* prints out prompt to stdout
  */
