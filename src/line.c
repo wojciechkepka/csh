@@ -3,6 +3,8 @@
 const char *CLEAR_BACK_CHAR_SEQ = "\b\b\b   \b\b\b";
 const char *ANSI_COL_RIGHT = "\033[1C";
 const char *ANSI_COL_LEFT = "\033[1D";
+const int DEL_KEY_FIRST = 0x33;
+const int DEL_KEY_SECOND = 0x7e;
 const int ARROW_UP = 0x41;
 const int ARROW_DOWN = 0x42;
 const int ARROW_RIGHT = 0x43;
@@ -19,7 +21,7 @@ char *csh_readline(void)
     }
     int ch;
     size_t pos = 0, max_pos = 0;
-    bool was_escape = false, is_arr = false, print_ch, add_buf;
+    bool was_escape = false, is_key_esc = false, print_ch, add_buf, is_del_key = false;
 
     csh_enable_raw_mode();
     while (true)
@@ -75,9 +77,39 @@ char *csh_readline(void)
 
         // fprintf(stderr, "max = %d, esc = %d, arr = %d, ch = %.2x\n", max_pos, was_escape, is_arr, ch);
         
-        if (is_arr)
+        if (is_del_key)
         {
-            is_arr = false;
+            if (ch == DEL_KEY_SECOND)
+            {
+                is_del_key = false;
+                if (pos < max_pos)
+                {
+                    write(STDIN_FILENO, "\033[s\033[0K", 8);
+                    for(size_t c = pos; c < max_pos; c++)
+                    {
+                        buf[c] = buf[c+1];
+                        write(STDIN_FILENO, &buf[c+1], 1);
+                    }
+                    write(STDIN_FILENO, "\033[u", 3);
+                    max_pos--;
+                    continue;
+                }
+            }
+            else
+            {
+                // its not a del key
+                write(STDIN_FILENO, "\033[3", 3);
+                buf[pos++] = 0x1b;
+                buf[pos++] = 0x5b;
+                buf[pos++] = 0x33;
+            }
+        }
+
+        
+
+        if (is_key_esc)
+        {
+            is_key_esc = false;
             if (ch == ARROW_UP || ch == ARROW_DOWN || ch == ARROW_LEFT || ch == ARROW_RIGHT)
             {
                 if (ch == ARROW_RIGHT)
@@ -100,8 +132,13 @@ char *csh_readline(void)
                 goto fix_pos;
                 continue;
             }
+            else if (ch == DEL_KEY_FIRST)
+            {
+                is_del_key = true;
+                continue;
+            }
             else
-            { // its not an arrow key so write the escape sequence and [ to stdout
+            { // its not a key escape so write the escape sequence and [ to stdout
                 write(STDIN_FILENO, "\033[", 2);
                 buf[pos++] = 0x1b;
                 buf[pos++] = 0x5b;
@@ -111,7 +148,7 @@ char *csh_readline(void)
         if (was_escape && ch == 0x5b)
         {
             was_escape = false;
-            is_arr = true;
+            is_key_esc = true;
             print_ch = false;
             add_buf = false;
         }
