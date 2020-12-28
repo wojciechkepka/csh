@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <signal.h>
 
-const char *CLEAR_SCREEN_ANSI;
 static struct termios ORIG_TERM_SETTINGS;
+extern const char *CLEAR_SCREEN_ANSI;
 
 /* sets terminal back to original settings.
  */
