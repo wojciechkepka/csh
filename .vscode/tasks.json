@@ -1,0 +1,15 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "bld",
+            "command": "make"
+        },
+        {
+            "type": "shell",
+            "label": "bld_dbg",
+            "command": "make dbg"
+        }
+    ],
+    "version": "2.0.0"
+}
