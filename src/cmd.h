@@ -9,7 +9,7 @@
 #include "path.h"
 #include "env.h"
 
-#define CSH_BUILTIN_COUNT 4
+#define CSH_BUILTIN_COUNT 5
 
 /* internal implementation of cd builtin command.
  *
@@ -44,6 +44,14 @@ int csh_exit(char **args);
  * @returns always 1 to indicate another loop
  */
 int csh_tilde(char **args);
+
+/* builtin implementation of export command. This command is used to set
+ * environment variables in current shell for other processes to use
+ * 
+ * @param args arguments to call export with
+ * @returns always 1 to indicate another loop
+ */
+int csh_export(char **args);
 
 /**/
 

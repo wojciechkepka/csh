@@ -9,6 +9,7 @@ const char *builtin_commands[] =
     "help",
     "exit",
     "~",
+    "export",
 };
 
 int (*builtin_funcs[]) (char **) =
@@ -17,6 +18,7 @@ int (*builtin_funcs[]) (char **) =
     &csh_help, 
     &csh_exit, 
     &csh_tilde,
+    &csh_export,
 };
 
 
@@ -85,6 +87,38 @@ int csh_exit(char **args)
 {
     return 0;
 }
+
+int csh_export(char **args)
+{
+    if (args[1] == NULL)
+    {
+        fprintf(stderr, "missing variable to export. Example `FOO=bar`\n");
+    }
+    else
+    {
+        const char *sep = "=";
+        char *p = strpbrk(args[1], sep);
+        if (p != NULL)
+        {
+            int len = p - args[1];
+            char *name = malloc((len + 1) * sizeof(char));
+            if (!name)
+            {
+                fprintf(stderr, "failed to allocate memory for env var");
+            }
+            else
+            {
+                strncpy(name, args[1], len);
+                setenv(name, ++p, 1);
+                free(name);
+            }
+        }
+    }
+
+    return 1;
+}
+
+/* */
 
 int csh_launch(char **args)
 {
