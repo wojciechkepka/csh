@@ -39,7 +39,7 @@ char *csh_readline(void)
 
         ch = getchar();
 
-        fprintf(stderr ,"ch = `%c` %.2x\n", ch, ch);
+        // fprintf(stderr ,"ch = `%c` %.2x\n", ch, ch);
         if (ch == CTRL_D)
         {
             fflush(stdout);
@@ -51,7 +51,7 @@ char *csh_readline(void)
         if (ch == CTRL_L) // ctrl + l
         {
             csh_clear();
-            csh_print_prompt();
+            csh_prompt_print();
             fflush(stdout);
             fflush(stdin);
             write(STDOUT_FILENO, buf, max_pos);

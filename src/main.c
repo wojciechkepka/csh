@@ -134,6 +134,8 @@ void csh_init(void)
     csh_set_username();
     csh_set_cwd();
     csh_set_user_home();
+    csh_prompt_init(F_ALL);
+    atexit(csh_prompt_free);
 }
 
 /* main loop of csh
@@ -151,7 +153,7 @@ void csh_loop(void)
         csh_set_uid();
         csh_set_username_if_changed();
         csh_set_cwd();
-        csh_print_prompt();
+        csh_prompt_print();
         line = csh_readline();
         if (line == NULL)
         {
@@ -171,6 +173,5 @@ void csh_loop(void)
 int main(void)
 {
     csh_loop();
-
     return EXIT_SUCCESS;
 }
