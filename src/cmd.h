@@ -10,8 +10,6 @@
 
 #define CSH_BUILTIN_COUNT 4
 
-extern char *USERHOME_p, *USERNAME_p;
-
 /* internal implementation of cd builtin command.
  *
  * @param path a path to change directory to.

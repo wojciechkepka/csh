@@ -30,7 +30,7 @@ extern volatile int *GOT_CTRL_C_p;
  *
  * @returns a line of input from stdin
  * */
-char *csh_readline();
+char *csh_readline(void);
 
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.

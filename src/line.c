@@ -1,24 +1,24 @@
 #include "line.h"
 
 const char *CLEAR_BACK_CHAR_SEQ = "\b\b\b   \b\b\b";
-const char *ANSI_COL_RIGHT = "\e[1C";
-const char *ANSI_COL_LEFT = "\e[1D";
+const char *ANSI_COL_RIGHT = "\033[1C";
+const char *ANSI_COL_LEFT = "\033[1D";
 const int ARROW_UP = 0x41;
 const int ARROW_DOWN = 0x42;
 const int ARROW_RIGHT = 0x43;
 const int ARROW_LEFT = 0x44;
 
-char *csh_readline()
+char *csh_readline(void)
 {
-    int bufsize = CSH_INP_BUF_SIZE;
+    size_t bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
-
     if (!buf)
     {
         fprintf(stderr, "Error: failed to allocate input buffer");
         exit(EXIT_FAILURE);
     }
-    int ch, pos = 0, max_pos = 0;
+    int ch;
+    size_t pos = 0, max_pos = 0;
     bool was_escape = false, is_arr = false, print_ch, add_buf;
 
     csh_enable_raw_mode();
@@ -59,13 +59,13 @@ char *csh_readline()
         {
             if (pos > 0)
             {
-                write(STDIN_FILENO, "\b\e[s\e[0K", 8);
-                for(int c = pos - 1; c < max_pos; c++)
+                write(STDIN_FILENO, "\b\033[s\033[0K", 8);
+                for(size_t c = pos - 1; c < max_pos; c++)
                 {
                     buf[c] = buf[c+1];
                     write(STDIN_FILENO, &buf[c+1], 1);
                 }
-                write(STDIN_FILENO, "\e[u", 3);
+                write(STDIN_FILENO, "\033[u", 3);
                 pos--;
                 max_pos--;
             }
@@ -73,7 +73,7 @@ char *csh_readline()
             continue;
         }
 
-        fprintf(stderr, "max = %d, esc = %d, arr = %d, ch = %.2x\n", max_pos, was_escape, is_arr, ch);
+        // fprintf(stderr, "max = %d, esc = %d, arr = %d, ch = %.2x\n", max_pos, was_escape, is_arr, ch);
         
         if (is_arr)
         {
@@ -102,7 +102,7 @@ char *csh_readline()
             }
             else
             { // its not an arrow key so write the escape sequence and [ to stdout
-                write(STDIN_FILENO, "\e[", 2);
+                write(STDIN_FILENO, "\033[", 2);
                 buf[pos++] = 0x1b;
                 buf[pos++] = 0x5b;
             }
@@ -117,9 +117,9 @@ char *csh_readline()
         }
 
         if (was_escape && ch != 0x5b)
-        { //its not an arrow so print \e to stdout
+        { //its not an arrow so print \033 to stdout
             was_escape = false;
-            write(STDIN_FILENO, "\e", 1);
+            write(STDIN_FILENO, "\033", 1);
             buf[pos++] = 0x1b;
         }
 
@@ -133,14 +133,14 @@ char *csh_readline()
         if (ch == EOF || ch == '\n')
         {
             csh_disable_raw_mode();
-            buf[max_pos + 1] = '\0';
+            buf[max_pos] = '\0';
             fflush(stdin);
             fflush(stdout);
             write(STDIN_FILENO, "\n", 1);
             return buf;
         }
 
-        if (add_buf) buf[pos++] = ch;
+        if (add_buf) buf[pos++] = (char)ch;
 
         if (print_ch) write(STDIN_FILENO, &ch, 1);
 
@@ -162,7 +162,7 @@ fix_pos:
 
 char **csh_split_line(char *line)
 {
-    int bufsize = CSH_TOK_BUF_SIZE, pos = 0;
+    size_t bufsize = CSH_TOK_BUF_SIZE, pos = 0;
     char **tokens = malloc(bufsize * sizeof(char*));
     char *token;
 

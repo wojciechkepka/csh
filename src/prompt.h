@@ -7,6 +7,6 @@ extern char *USERNAME_p, *CWD_p;
 
 /* prints out prompt to stdout
  */
-void csh_print_prompt();
+void csh_print_prompt(void);
 
 #endif // CSH_PROMPTH

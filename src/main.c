@@ -15,29 +15,31 @@
 #include "line.h"
 #include "prompt.h"
 
+#pragma GCC diagnostic ignored "-Wmissing-prototypes"
+
 static volatile int got_ctrl_c = 0;
 static char CWD[PATH_MAX];
 static char USERNAME[32];
 static char USERHOME[PATH_MAX];
-static int UID;
+static __uid_t UID;
 
 char *CWD_p = &(CWD[0]);
 char *USERNAME_p = &(USERNAME[0]);
 char *USERHOME_p = &(USERHOME[0]);
-int *UID_p = &UID;
+__uid_t *UID_p = &UID;
 volatile int *GOT_CTRL_C_p = &got_ctrl_c;
 
 
 /* sets value of UID to current uid of this process
  */
-void csh_set_uid()
+void csh_set_uid(void)
 {
     UID = getuid();
 }
 
 /* aquires cwd of this process and stores it.
  */
-void csh_set_cwd()
+void csh_set_cwd(void)
 {
     if (getcwd(CWD, sizeof(CWD)) == NULL)
     {
@@ -87,21 +89,21 @@ void csh_get_username(char *name)
 
 /* gets full username of this process uid and stores it in USERNAME var.
  */
-void csh_set_username()
+void csh_set_username(void)
 {
     csh_get_username(USERNAME);
 }
 
 /* gets this process uid home directory and stores it in USERHOME var.
  */
-void csh_set_user_home()
+void csh_set_user_home(void)
 {
     csh_get_user_home(USERHOME);
 }
 
 /* updates username if the UID changed.
  */
-void csh_set_username_if_changed()
+void csh_set_username_if_changed(void)
 {
     if (getuid() != UID)
     {
@@ -110,18 +112,21 @@ void csh_set_username_if_changed()
     }
 }
 
-void csh_sigint_handler(int i) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+void csh_sigint_handler(int _) {
     got_ctrl_c = 1;
 }
 
-void csh_sigusr_handler(int i) {
+void csh_sigusr_handler(int _) {
     printf("\nC you later :}\n");
     exit(EXIT_SUCCESS);
 }
+#pragma GCC diagnostic pop //-Wunused-parameters
 
 /* initializes static variables like uid, username and cwd
  */
-void csh_init()
+void csh_init(void)
 {
     signal(SIGINT, csh_sigint_handler);
     signal(SIGUSR1, csh_sigusr_handler);
@@ -133,7 +138,7 @@ void csh_init()
 
 /* main loop of csh
  */
-void csh_loop()
+void csh_loop(void)
 {
     csh_init();
 
@@ -163,7 +168,7 @@ void csh_loop()
 }
 
 
-int main()
+int main(void)
 {
     csh_loop();
 

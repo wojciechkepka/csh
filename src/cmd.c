@@ -1,5 +1,8 @@
 #include "cmd.h"
 
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+
 const char *builtin_commands[] =
 {
     "cd",
@@ -87,7 +90,7 @@ int csh_launch(char **args)
 {
     if (strcmp(args[0], "\0") == 0) return 1;
 
-    pid_t pid, wpid;
+    pid_t pid;
     int status;
 
     pid = fork();
@@ -107,7 +110,7 @@ int csh_launch(char **args)
     {
         do
         {
-            wpid = waitpid(pid, &status, WUNTRACED);
+            waitpid(pid, &status, WUNTRACED);
         }
         while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
