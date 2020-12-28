@@ -19,13 +19,7 @@
 #define CTRL_D 0x04
 
 extern volatile int *GOT_CTRL_C_p;
-const char *CLEAR_BACK_CHAR_SEQ;
-const char *ANSI_COL_RIGHT;
-const char *ANSI_COL_LEFT;
-const int ARROW_UP;
-const int ARROW_DOWN;
-const int ARROW_RIGHT;
-const int ARROW_LEFT;
+
 
 /* reads from stdin character by character until EOF or '\n' is encountered. By default
  * allocates a buffer of CSH_INP_BUF_SIZE size and extends it as needed. It is the callers duty to
