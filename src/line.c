@@ -9,6 +9,7 @@ const int ARROW_UP = 0x41;
 const int ARROW_DOWN = 0x42;
 const int ARROW_RIGHT = 0x43;
 const int ARROW_LEFT = 0x44;
+const int HOME_KEY = 0x48;
 
 char *csh_readline(void)
 {
@@ -38,7 +39,7 @@ char *csh_readline(void)
 
         ch = getchar();
 
-        // fprintf(stderr ,"ch = `%c` %.2x\n", ch, ch);
+        fprintf(stderr ,"ch = `%c` %.2x\n", ch, ch);
         if (ch == CTRL_D)
         {
             fflush(stdout);
@@ -85,15 +86,15 @@ char *csh_readline(void)
                 if (pos < max_pos)
                 {
                     write(STDIN_FILENO, "\033[s\033[0K", 8);
-                    for(size_t c = pos; c < max_pos; c++)
+                    for(size_t c = pos; c < max_pos - 1; c++)
                     {
                         buf[c] = buf[c+1];
                         write(STDIN_FILENO, &buf[c+1], 1);
                     }
                     write(STDIN_FILENO, "\033[u", 3);
                     max_pos--;
-                    continue;
                 }
+                continue;
             }
             else
             {
@@ -135,6 +136,16 @@ char *csh_readline(void)
             else if (ch == DEL_KEY_FIRST)
             {
                 is_del_key = true;
+                continue;
+            }
+            else if (ch == HOME_KEY)
+            {
+                char cols[256];
+                sprintf(cols, "%ld", pos);
+                write(STDIN_FILENO, "\033[", 2);
+                write(STDIN_FILENO, cols, strlen(cols));
+                write(STDIN_FILENO, "D", 1);
+                pos = 0;
                 continue;
             }
             else
