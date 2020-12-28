@@ -1,18 +1,8 @@
-bld: compile link
-dbg: compile_dbg link_dbg
+all:
+	$(MAKE) -C obj all
 
-NAME = csh
-FILES = main.c cmd.c cmd.h line.c line.h term.c term.h path.c path.h prompt.c prompt.h
-OFILES = main.o cmd.o line.o term.o path.o prompt.o
+bld:
+	$(MAKE) -C obj bld
 
-compile:
-	gcc -Wpedantic -c $(FILES)
-
-compile_dbg:
-	gcc -Wpedantic -g -c $(FILES)
-
-link:
-	gcc -o $(NAME) $(OFILES)
-
-link_dbg:
-	gcc -g -o $(NAME) $(OFILES)
+clean:
+	$(MAKE) -C obj clean
