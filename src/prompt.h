@@ -5,13 +5,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include "env.h"
 
 #define F_USER 0x1
 #define F_CWD 0x2
 #define F_DELIM 0x4
 #define F_ALL (F_USER | F_CWD | F_DELIM)
-
-extern char *USERNAME_p, *CWD_p;
 
 
 typedef struct {

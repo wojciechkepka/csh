@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "path.h"
+#include "env.h"
 
 #define CSH_BUILTIN_COUNT 4
 
