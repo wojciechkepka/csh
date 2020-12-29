@@ -10,7 +10,7 @@
 #include "env.h"
 #include "csh.h"
 
-#define CSH_BUILTIN_COUNT 5
+#define CSH_BUILTIN_COUNT 6
 
 /* internal implementation of cd builtin command.
  *
@@ -53,6 +53,8 @@ int csh_tilde(csh_t *csh, char **args);
  * @returns always 1 to indicate another loop
  */
 int csh_export(csh_t *csh, char **args);
+
+int csh_history(csh_t *csh, char **args);
 
 /**/
 

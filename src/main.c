@@ -11,6 +11,7 @@
 #include "prompt.h"
 #include "env.h"
 #include "csh.h"
+#include "history.h"
 
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
@@ -64,6 +65,8 @@ void csh_loop(void)
         {
             continue;
         }
+
+        history_add(csh->hist, line);
         
         args = csh_split_line(line);
         status = csh_execute(csh, args);

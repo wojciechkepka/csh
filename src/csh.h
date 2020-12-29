@@ -6,7 +6,9 @@
 #include <unistd.h>
 #include "prompt.h"
 #include "env.h"
+#include "history.h"
 
+#define CSH_HISTORY_CAPACITY 512
 
 /* wrapper structure groupping all widely used elements together
  */
@@ -17,6 +19,7 @@ typedef struct
     char userhome[PATH_MAX];
     __uid_t uid;
     prompt_t *prompt;
+    history_t *hist;
 } csh_t;
 
 /* initializes a new instance of csh

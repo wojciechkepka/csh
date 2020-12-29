@@ -16,6 +16,11 @@ csh_t *csh_init_env(csh_t *csh)
 {
     csh_set_cwd(csh);
     csh_get_user_home(csh->userhome);
+    csh->hist = history_init(CSH_HISTORY_CAPACITY);
+    if (!csh->hist)
+    {
+        // no history   
+    }
     csh_get_username(csh->username);
     csh->uid = getuid();
 

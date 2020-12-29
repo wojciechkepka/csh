@@ -10,6 +10,7 @@ const char *builtin_commands[] =
     "exit",
     "~",
     "export",
+    "history",
 };
 
 int (*builtin_funcs[]) (csh_t *, char **) =
@@ -19,6 +20,7 @@ int (*builtin_funcs[]) (csh_t *, char **) =
     &csh_exit, 
     &csh_tilde,
     &csh_export,
+    &csh_history,
 };
 
 
@@ -113,6 +115,16 @@ int csh_export(csh_t *csh, char **args)
                 free(name);
             }
         }
+    }
+
+    return 1;
+}
+
+int csh_history(csh_t *csh, char **args)
+{
+    for (size_t i = 0; i <= csh->hist->back - 1; i++)
+    {
+        fprintf(stdout, "\t%ld\t%s\n", i, csh->hist->elems[i]);
     }
 
     return 1;
