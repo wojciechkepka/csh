@@ -1,38 +1,79 @@
 #include "prompt.h"
 
-prompt_t *csh_prompt_init(int flags, char *username, char *cwd)
+/******************************************************************************/
+
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wmissing-prototypes"
+typedef struct
 {
-    size_t total_size = 5; // 5 = whitespace, @, >, and \0
+    char *format;
+    int pos;
+    size_t len;
+} fmt_reader;
+
+fmt_reader *fread_init(char *format)
+{
+    fmt_reader *f = malloc(sizeof(fmt_reader));
+    if (!f) return NULL;
+
+    f->pos = -1;
+    f->format = format;
+    f->len = strlen(f->format);
+
+    return f;
+}
+
+bool fread_is_end(fmt_reader *f)
+{
+    return f->pos == (int)(f->len - 1);
+}
+
+char *fread_next(fmt_reader *f)
+{
+    if (f->pos == -1) f->pos = 0;
+    if (f->pos <= (int)(f->len - 1))
+    {
+        char * ret;
+        ret = &f->format[f->pos];
+        f->pos++;
+        return ret;
+    }
+    return NULL;
+}
+
+char *fread_peek(fmt_reader *f)
+{
+    if (f->pos <= (int)(f->len - 1))
+    {
+        return &f->format[f->pos];
+    }
+    return NULL;
+}
+
+void fread_reset(fmt_reader *f)
+{
+    f->pos = -1;
+}
+
+# pragma GCC diagnostic pop
+/******************************************************************************/
+
+prompt_t *csh_prompt_init(char *username, char *cwd)
+{
     prompt_t *p = malloc(sizeof(prompt_t));
     if (!p)
     {
         fprintf(stderr, "failed to allocate memory for prompt");
         return NULL;
     }
-    p->flags = flags;
-    if (flags & F_USER)
-    {
-        total_size += strlen(username);
-        p->user = username;
-    }
-    else
-    {
-        p->user = NULL;
-    }
-    
+    p->user = username;
+    p->cwd = cwd;
 
-    if (flags & F_CWD)
-    {
-        total_size += strlen(cwd);
-        p->cwd = cwd;
-    }
-    else
-    {
-        p->cwd = NULL;
-    }
     
+    p->len = csh_prompt_calculate_len(p);
 
-    char *prompt = malloc(total_size * sizeof(char));
+    csh_prompt_update_fmt(p);
+    char *prompt = malloc(p->len * sizeof(char));
     if (!prompt)
     {
         fprintf(stderr, "failed to allocate memory for prompt");
@@ -44,31 +85,99 @@ prompt_t *csh_prompt_init(int flags, char *username, char *cwd)
     return p;
 }
 
-void csh_prompt_update(prompt_t *p)
+void csh_prompt_set_fmt(prompt_t *p, const char *format)
 {
-    p->prompt[0] = '\0';
+    if (p->format) free(p->format);
+    p->format = malloc((strlen(format) + 1) * sizeof(char));
+    if (!p->format) return;
+    strcpy(p->format, format);
+    p->len = csh_prompt_calculate_len(p);
+}
 
-    if (p->flags & F_USER)
+void csh_prompt_update_fmt(prompt_t *p)
+{
+    char *env;
+    if ((env = getenv(CSH_FORMAT_ENV)) == NULL)
     {
-        strcat(p->prompt, p->user);
-        strcat(p->prompt, "@");
-    }
-
-    if (p->flags & F_CWD)
-    {
-        strcat(p->prompt, p->cwd); 
-    }
-
-    if (p->flags & F_DELIM)
-    {
-        strcat(p->prompt, " > ");
+        csh_prompt_set_fmt(p, CSH_DEFAULT_PROMPT);
     }
     else
     {
-        strcat(p->prompt, " ");
+        if ((strcmp(env, p->format)) != 0)
+        {
+            csh_prompt_set_fmt(p, env);
+        }
+    }
+}
+
+size_t csh_prompt_calculate_len(prompt_t *p)
+{
+    size_t len = 0;
+    char *ret, *ret2;
+    fmt_reader *reader = fread_init(p->format);
+
+    while((ret = fread_next(reader)) != NULL)
+    {
+        switch (*ret)
+        {
+        case '%':
+            ret2 = fread_peek(reader);
+            if (!ret2) break;
+            switch (*ret2)
+            {
+            case 'u':
+                len += strlen(p->user);
+                fread_next(reader);
+                break;
+            case 'd':
+                len += strlen(p->cwd);
+                fread_next(reader);
+                break;
+            }
+            break;
+        default:
+            len += 1;
+        }
+    }
+    
+    free(reader);
+    return len;
+}
+
+void csh_prompt_update(prompt_t *p)
+{
+    csh_prompt_update_fmt(p);
+    fmt_reader *reader = fread_init(p->format);
+    p->prompt[0] = '\0';
+    char *ret, *ret2;
+
+    while((ret = fread_next(reader)) != NULL)
+    {
+        switch (*ret)
+        {
+        case '%':
+            ret2 = fread_peek(reader);
+            if (!ret2) return;
+            switch (*ret2)
+            {
+            case 'u':
+                strcat(p->prompt, p->user);
+                fread_next(reader);
+                break;
+            case 'd':
+                strcat(p->prompt, p->cwd);
+                fread_next(reader);
+                break;
+            }
+            break;
+        default:
+            strncat(p->prompt, ret, 1);
+        }
     }
     
     p->len = strlen(p->prompt);
+
+    free(reader);
 }
 
 void csh_prompt_print(prompt_t *p)

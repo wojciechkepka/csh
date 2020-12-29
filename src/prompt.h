@@ -5,36 +5,38 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "env.h"
 
-#define F_USER 0x1
-#define F_CWD 0x2
-#define F_DELIM 0x4
-#define F_ALL (F_USER | F_CWD | F_DELIM)
-
+#define CSH_FORMAT_ENV "CSH_FMT"
+#define CSH_DEFAULT_PROMPT "%u@%d > "
 
 typedef struct {
-    char *user, *cwd, *prompt;
-    int flags;
+    char *user, *cwd, *prompt, *format;
     size_t len;
 } prompt_t;
 
 /* initializes a new prompt by dynamically allocating memory. It is the callers duty to free up
- * resources with csh_prompt_free after use.
+ * resources with csh_prompt_free after use. The prompt is configurable by format string
+ * read from CSH_FMT environment variable.
  * 
- * @param flags bitflags deciding which elements of prompt should be displayed. To disable
- * a certain flag pass for example `F_ALL & ~(F_USER)`
  * @param username name of the user to display
  * @param cwd current working directory to diplsay
  * @returns a pointer to prompt_t
  */
-prompt_t *csh_prompt_init(int flags, char *username, char *cwd);
+prompt_t *csh_prompt_init(char *username, char *cwd);
 
 /* frees up all resources used by a prompt
  *
  * @param p prompt to free
  */
 void csh_prompt_free(prompt_t *p);
+
+
+size_t csh_prompt_calculate_len(prompt_t *p);
+
+void csh_prompt_update_fmt(prompt_t *p);
+void csh_prompt_set_fmt(prompt_t *p, const char *format);
 
 /* updates a prompt string in case one of the fields changed
  *

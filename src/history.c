@@ -18,11 +18,12 @@ history_t *history_init(size_t capacity)
 
 bool history_is_full(history_t *hist)
 {
-    return hist->back == hist->capacity - 1;
+    return hist->back == (hist->capacity - 1);
 }
 
 int history_add(history_t *hist, char *item)
 {
+    if (hist->back > hist->capacity - 1) hist->back = 0;
     if (history_is_full(hist))
     {
         hist->elems = realloc(hist->elems, hist->capacity * 2);

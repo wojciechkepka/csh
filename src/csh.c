@@ -24,7 +24,7 @@ csh_t *csh_init_env(csh_t *csh)
     csh_get_username(csh->username);
     csh->uid = getuid();
 
-    csh->prompt = csh_prompt_init(F_ALL, csh->username, csh->cwd);
+    csh->prompt = csh_prompt_init(csh->username, csh->cwd);
     if (!csh->prompt)
     {
         return NULL;
