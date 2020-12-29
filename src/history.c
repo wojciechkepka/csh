@@ -30,7 +30,7 @@ int history_add(history_t *hist, char *item)
         hist->capacity *= 2;
     }
 
-    char *add = malloc(strlen(item) * sizeof(char));
+    char *add = malloc((strlen(item)+1) * sizeof(char));
     if (!add) return -1;
 
     strcpy(add, item);
