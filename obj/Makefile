@@ -1,6 +1,8 @@
-all: clean bld
+all: clean release
 
-bld: prepare_dir compile link
+debug: prepare_dir compile link
+
+release: clean prepare_dir compile_release link_release
 
 NAME := csh
 CC := gcc
@@ -9,11 +11,13 @@ WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
             -Wredundant-decls -Wnested-externs -Winline -Wno-long-long \
             -Wconversion -Wstrict-prototypes
 CFLAGS := -g $(WARNINGS)
+CFLAGS_RELEASE := -fPIC -O3 $(WARNINGS)
 PROJDIRS := ../src
 SRCFILES := $(shell find $(PROJDIRS) -type f -name "*.c")
 HDRFILES := $(shell find $(PROJDIRS) -type f -name "*.h")
 GCHFILES := $(shell find $(PROJDIRS) -type f -name "*.gch")
-OBJFILES := $(shell find . -type f -name "*.o")
+_OBJFILES := find . -type f -name "*.o"
+OBJFILES := $(shell $(_OBJFILES))
 BINFILE := ../bin/$(NAME)
 
 
@@ -24,7 +28,15 @@ compile:
 	$(CC) $(CFLAGS) -c $(SRCFILES)
 
 link:
-	$(CC) $(CFLAGS) -o $(BINFILE) $(shell find . -type f -name "*.o")
+	$(eval OBJFILES := $(shell $(_OBJFILES)))
+	$(CC) $(CFLAGS) -o $(BINFILE)_dbg $(OBJFILES)
+
+compile_release:
+	$(CC) $(CFLAGS_RELEASE) -c $(SRCFILES)
+
+link_release:
+	$(eval OBJFILES := $(shell $(_OBJFILES)))
+	$(CC) $(CFLAGS_RELEASE) -o $(BINFILE) $(OBJFILES)
 
 clean:
 	$(RM) $(OBJFILES) $(BINFILE) $(GCHFILES)
