@@ -15,7 +15,7 @@
 
 typedef struct {
     char *user, *cwd, *prompt;
-    int flags;
+    int flags, len;
 } prompt_t;
 
 #pragma GCC diagnostic push

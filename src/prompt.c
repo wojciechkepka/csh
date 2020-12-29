@@ -3,7 +3,7 @@
 void csh_prompt_print(void)
 {
     csh_prompt_update();
-    printf("%s", PROMPT->prompt);
+    write(STDIN_FILENO, PROMPT->prompt, PROMPT->len);
 }
 
 void csh_prompt_init(int flags)
@@ -72,6 +72,7 @@ void csh_prompt_update(void)
         strcat(PROMPT->prompt, " ");
     }
     
+    PROMPT->len = strlen(PROMPT->prompt);
 }
 
 void csh_prompt_free(void)
