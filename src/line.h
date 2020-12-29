@@ -30,6 +30,11 @@ enum key_e {
 
 extern volatile int *GOT_CTRL_C_p;
 
+/* reads characters from stdin, if escape sequence `\x1b` is encountered tries to read
+ * the full escape sequence and interpret it as a key like ARROW_UP or PAGE_DOWN.
+ * 
+ * @returns read char or key sequence as key_e
+ */
 int csh_readkey(void);
 
 /* reads from stdin character by character until EOF or '\n' is encountered. By default

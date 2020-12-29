@@ -100,7 +100,7 @@ int csh_export(csh_t *csh, char **args)
         char *p = strpbrk(args[1], sep);
         if (p != NULL)
         {
-            int len = p - args[1];
+            size_t len = (size_t)(p - args[1]);
             char *name = malloc((len + 1) * sizeof(char));
             if (!name)
             {

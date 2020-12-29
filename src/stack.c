@@ -17,7 +17,7 @@ sstack_t *stack_init(size_t capacity)
 
 void stack_free(sstack_t *stack)
 {
-    for (int i = 0; i < stack->capacity; i++)
+    for (size_t i = 0; i < stack->capacity; i++)
     {
         free(stack->items[i]);
     }
@@ -26,7 +26,7 @@ void stack_free(sstack_t *stack)
 }
 bool stack_is_full(sstack_t *stack)
 {
-    return stack->top == stack->capacity - 1;
+    return (size_t)stack->top == stack->capacity - 1;
 }
 
 bool stack_is_empty(sstack_t *stack)

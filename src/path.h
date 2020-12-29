@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "env.h"
 
 /* expands a path starting with `~` by allocating a new string on the heap and concating
  * current users home with the rest of the path.

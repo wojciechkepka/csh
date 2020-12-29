@@ -8,8 +8,8 @@
 typedef struct
 {
     char **items;
-    int top;
-    int capacity;
+    ssize_t top;
+    size_t capacity;
 } sstack_t;
 
 sstack_t *stack_init(size_t capacity);

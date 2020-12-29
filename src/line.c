@@ -132,10 +132,13 @@ char *csh_readline(prompt_t *prompt)
                 write(STDOUT_FILENO, buf, max_pos);
                 continue;
 
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
             case CTRL_D:
                 fflush(stdout);
                 fflush(stdin);
                 kill(getpid(), SIGUSR1);
+# pragma GCC diagnostic push
 
             case DEL:
                 if (pos > 0)

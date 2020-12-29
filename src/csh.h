@@ -7,6 +7,9 @@
 #include "prompt.h"
 #include "env.h"
 
+
+/* wrapper structure groupping all widely used elements together
+ */
 typedef struct
 {
     char cwd[PATH_MAX];
@@ -16,11 +19,36 @@ typedef struct
     prompt_t *prompt;
 } csh_t;
 
+/* initializes a new instance of csh
+ *
+ * @returns a pointer to csh or a null pointer if there was an error with allocation
+ */
 csh_t *csh_new(void);
+
+/* initializes fields of csh like username, current working directory or user home
+ *
+ * @returns a pointer to csh on success and null pointer on failure
+ */
 csh_t *csh_init_env(csh_t *csh);
-void csh_update(csh_t *csh);
+
+/* sets cwd field of csh to directory of this process. Usually used
+ * through csh_init_env or csh_update
+ *
+ * @param csh a pointer to csh
+ */
 void csh_set_cwd(csh_t *csh);
-void *csh_free(csh_t *csh);
+
+/* udates all fields of csh if uid changed otherwise only updates cwd
+ *
+ * @param csh a pointer to csh
+ */
+void csh_update(csh_t *csh);
+
+/* frees up all memory used by this structure
+ *
+ * @param csh a pointer to csh
+ */
+void csh_free(csh_t *csh);
 
 
 #endif // CSH_CSHH

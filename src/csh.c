@@ -9,9 +9,7 @@ csh_t *csh_new(void)
         return NULL;
     }
 
-    csh_init_env(csh);
-
-    return csh;
+    return csh_init_env(csh);
 }
 
 csh_t *csh_init_env(csh_t *csh)
@@ -56,7 +54,7 @@ void csh_update(csh_t *csh)
     
 }
 
-void *csh_free(csh_t *csh)
+void csh_free(csh_t *csh)
 {
     csh_prompt_free(csh->prompt);
     free(csh);
