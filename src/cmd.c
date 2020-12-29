@@ -111,6 +111,7 @@ int csh_export(csh_t *csh, char **args)
             else
             {
                 strncpy(name, args[1], len);
+                name[len] = '\0';
                 setenv(name, ++p, 1);
                 free(name);
             }
