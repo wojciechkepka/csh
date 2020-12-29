@@ -24,7 +24,7 @@ compile:
 	$(CC) $(CFLAGS) -c $(SRCFILES)
 
 link:
-	$(CC) $(CFLAGS) -o $(BINFILE) $(OBJFILES)
+	$(CC) $(CFLAGS) -o $(BINFILE) $(shell find . -type f -name "*.o")
 
 clean:
 	$(RM) $(OBJFILES) $(BINFILE) $(GCHFILES)
