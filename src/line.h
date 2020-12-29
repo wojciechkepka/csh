@@ -18,8 +18,19 @@
 #define CTRL_L 0x0C
 #define CTRL_D 0x04
 
+enum key_e {
+    ARROW_LEFT = 1000,
+    ARROW_RIGHT,
+    ARROW_UP,
+    ARROW_DOWN,
+    DEL_KEY,
+    HOME_KEY,
+    END_KEY,
+};
+
 extern volatile int *GOT_CTRL_C_p;
 
+int csh_readkey(void);
 
 /* reads from stdin character by character until EOF or '\n' is encountered. By default
  * allocates a buffer of CSH_INP_BUF_SIZE size and extends it as needed. It is the callers duty to
