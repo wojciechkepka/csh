@@ -13,6 +13,8 @@
 
 /******************************************************************************/
 
+/* number of builtin commands calculated from builtin_funcs array
+ */
 #define CSH_BUILTIN_COUNT (sizeof(builtin_funcs) / sizeof(int (*)(csh_t *, char **)))
 
 /* internal implementation of cd builtin command.
@@ -62,7 +64,8 @@ int csh_export(csh_t *csh, char **args);
  * 
  * @param args arguments to call unset with
  * @returns always 1 to indicate another loop
- */int csh_unset(csh_t *csh, char **args);
+ */
+int csh_unset(csh_t *csh, char **args);
 
 /* builtin implementation of history command. This command is used to display
  * history of executed commands.
