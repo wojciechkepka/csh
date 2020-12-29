@@ -3,7 +3,7 @@
         {
             "type": "shell",
             "label": "bld",
-            "command": "make"
+            "command": "make debug"
         },
     ],
     "version": "2.0.0"
