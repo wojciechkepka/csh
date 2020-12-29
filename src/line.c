@@ -21,28 +21,61 @@ int csh_readkey(void)
 
     if (ch == '\033')
     {
-        char seq[3];
+        char seq[5];
 
         if (read(STDIN_FILENO, &seq[0], 1) != 1) return ch;
         if (read(STDIN_FILENO, &seq[1], 1) != 1) return ch;
+
 
         if (seq[0] == '[')
         {
             if (seq[1] >= '0' && seq[1] <= '9')
             {
                 if (read(STDIN_FILENO, &seq[2], 1) != 1) return ch;
-                if (seq[2] == '~')
+
+                switch (seq[1])
                 {
-                    switch (seq[1])
-                    {
-                        case '1': return HOME_KEY;
-                        case '3': return DEL_KEY;
-                        case '4': return END_KEY;
-                        // case '5': return PAGE_UP;
-                        // case '6': return PAGE_DOWN;
-                        case '7': return HOME_KEY;
-                        case '8': return END_KEY;
-                    }
+                    case '1':
+                        if (seq[2] == '~') return HOME_KEY;
+
+                        if (read(STDIN_FILENO, &seq[3], 1) != 1) return ch;
+                        // if (seq[3] != '~') return ch; 
+
+                        switch (seq[2])
+                        {
+                            // case '5': // F5
+                            // case '7': // F6
+                            // case '8': // F7
+                            // case '9': // F8
+                        }
+                    case '2':
+                        if (read(STDIN_FILENO, &seq[3], 1) != 1) return ch;
+                        switch (seq[2])
+                        {
+                            // case '0': // F9
+                            // case '1': // F10
+                            // case '3': // F11
+                            // case '4': // F12
+                        }
+
+                    case '3':
+                        if (seq[2] == '~') return DEL_KEY;
+                        break;
+                    case '4':
+                        if (seq[2] == '~') return END_KEY;
+                        break;
+                    case '5':
+                        if (seq[2] == '~') return PAGE_UP;
+                        break;
+                    case '6':
+                        if (seq[2] == '~') return PAGE_DOWN;
+                        break;
+                    case '7':
+                        if (seq[2] == '~') return HOME_KEY;
+                        break;
+                    case '8':
+                        if (seq[2] == '~') return END_KEY;
+                        break;
                 }
             }
             else
@@ -68,7 +101,7 @@ int csh_readkey(void)
             }
         }
 
-        return '\033';
+        return DISABLED;
     }
     else
     {
@@ -76,7 +109,7 @@ int csh_readkey(void)
     }
 }
 
-char *csh_readline(prompt_t *prompt)
+char *csh_readline(csh_t *csh)
 {
     size_t bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
@@ -90,13 +123,20 @@ char *csh_readline(prompt_t *prompt)
     int key;
     size_t pos = 0, max_pos = 0;
 
-    csh_prompt_print(prompt);
+    csh_prompt_print(csh->prompt);
     csh_enable_raw_mode();
     while (true)
     {
         key = csh_readkey();
         switch (key)
         {
+            case ARROW_DOWN:
+            case ARROW_UP:
+            case PAGE_UP:
+            case PAGE_DOWN:
+            case DISABLED:
+                continue;
+
             case ARROW_LEFT:
                 if (pos > 0)
                 {
@@ -123,10 +163,22 @@ char *csh_readline(prompt_t *prompt)
                     pos = 0;
                 }
                 continue;
+            
+            case CTRL_E:
+            case END_KEY:
+                if (pos < max_pos)
+                {
+                    sprintf(cols, "%ld", max_pos - pos);
+                    write(STDIN_FILENO, "\033[", 2);
+                    write(STDIN_FILENO, cols, strlen(cols));
+                    write(STDIN_FILENO, "C", 1);
+                    pos = max_pos;
+                }
+                continue;
 
             case CTRL_L:
                 csh_clear();
-                csh_prompt_print(prompt);
+                csh_prompt_print(csh->prompt);
                 fflush(stdout);
                 fflush(stdin);
                 write(STDOUT_FILENO, buf, max_pos);
@@ -140,17 +192,31 @@ char *csh_readline(prompt_t *prompt)
                 kill(getpid(), SIGUSR1);
 # pragma GCC diagnostic push
 
-            case DEL:
+            case BACKSPACE:
                 if (pos > 0)
                 {
                     write(STDOUT_FILENO, "\b\033[s\033[0K", 8);
-                    for(size_t c = pos - 1; c < max_pos; c++)
+                    for(size_t c = pos - 1; c < max_pos - 1; c++)
                     {
                         buf[c] = buf[c+1];
                         write(STDOUT_FILENO, &buf[c+1], 1);
                     }
                     write(STDOUT_FILENO, "\033[u", 3);
                     pos--;
+                    max_pos--;
+                }
+                continue;
+
+            case DEL_KEY:
+                if (pos < max_pos)
+                {
+                    write(STDOUT_FILENO, "\033[s\033[0K", 8);
+                    for(size_t c = pos; c < max_pos - 1; c++)
+                    {
+                        buf[c] = buf[c+1];
+                        write(STDOUT_FILENO, &buf[c+1], 1);
+                    }
+                    write(STDOUT_FILENO, "\033[u", 3);
                     max_pos--;
                 }
                 continue;
@@ -164,6 +230,7 @@ char *csh_readline(prompt_t *prompt)
                 write(STDOUT_FILENO, "\n", 1);
                 return buf;
         }
+
 
         buf[pos++] = (char)key;
         write(STDOUT_FILENO, &key, 1);

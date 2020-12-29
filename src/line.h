@@ -8,24 +8,29 @@
 #include <stdbool.h>
 #include "term.h"
 #include "prompt.h"
+#include "csh.h"
 
 #define CSH_INP_BUF_SIZE 1024
 #define CSH_TOK_BUF_SIZE 64
 #define CSH_TOK_DELIM " \t\r\n\a"
 
 #define CTRL_C 0x03
-#define DEL 0x07F
+#define CTRL_E 0x05
 #define CTRL_L 0x0C
 #define CTRL_D 0x04
+#define BACKSPACE 0x7F
 
 enum key_e {
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
     ARROW_UP,
     ARROW_DOWN,
+    PAGE_UP,
+    PAGE_DOWN,
     DEL_KEY,
     HOME_KEY,
     END_KEY,
+    DISABLED,
 };
 
 extern volatile int *GOT_CTRL_C_p;
@@ -44,10 +49,10 @@ int csh_readkey(void);
  * This function may quit the main process if there is an error with allocation or reallocation of
  * the input buffer.
  *
- * @arguments prompt a prompt to print on screen clear
+ * @arguments csh a pointer to a csh instance
  * @returns a line of input from stdin
  * */
-char *csh_readline(prompt_t *prompt);
+char *csh_readline(csh_t *csh);
 
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.

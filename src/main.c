@@ -60,7 +60,7 @@ void csh_loop(void)
     do
     {
         csh_update(csh);
-        line = csh_readline(csh->prompt);
+        line = csh_readline(csh);
         if (line == NULL)
         {
             continue;
