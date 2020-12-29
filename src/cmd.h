@@ -13,7 +13,7 @@
 
 /******************************************************************************/
 
-#define CSH_BUILTIN_COUNT 6
+#define CSH_BUILTIN_COUNT (sizeof(builtin_funcs) / sizeof(int (*)(csh_t *, char **)))
 
 /* internal implementation of cd builtin command.
  *
