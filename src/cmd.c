@@ -5,21 +5,23 @@
 
 const char *builtin_commands[] =
 {
+    "~",
     "cd",
     "help",
     "exit",
-    "~",
     "export",
+    "unset",
     "history",
 };
 
 int (*builtin_funcs[]) (csh_t *, char **) =
 {
+    &csh_tilde,
     &csh_cd, 
     &csh_help, 
     &csh_exit, 
-    &csh_tilde,
     &csh_export,
+    &csh_unset,
     &csh_history,
 };
 
@@ -90,6 +92,7 @@ int csh_exit(csh_t *csh, char **args)
     return 0;
 }
 
+
 int csh_export(csh_t *csh, char **args)
 {
     if (args[1] == NULL)
@@ -117,6 +120,21 @@ int csh_export(csh_t *csh, char **args)
             }
         }
     }
+
+    return 1;
+}
+
+int csh_unset(csh_t *csh, char **args)
+{
+    if (args[1] == NULL)
+    {
+        fprintf(stderr, "missing variable name to unset");
+    }
+    else
+    {
+        unsetenv(args[1]);
+    }
+    
 
     return 1;
 }

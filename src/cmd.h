@@ -10,6 +10,9 @@
 #include "env.h"
 #include "csh.h"
 
+
+/******************************************************************************/
+
 #define CSH_BUILTIN_COUNT 6
 
 /* internal implementation of cd builtin command.
@@ -54,9 +57,22 @@ int csh_tilde(csh_t *csh, char **args);
  */
 int csh_export(csh_t *csh, char **args);
 
+/* builtin implementation of unset command. This command is used to unset
+ * an environment variable in current shell.
+ * 
+ * @param args arguments to call unset with
+ * @returns always 1 to indicate another loop
+ */int csh_unset(csh_t *csh, char **args);
+
+/* builtin implementation of history command. This command is used to display
+ * history of executed commands.
+ * 
+ * @param args arguments to call history with
+ * @returns always 1 to indicate another loop
+ */
 int csh_history(csh_t *csh, char **args);
 
-/**/
+/******************************************************************************/
 
 /* launches specified command command with args as child process.
  *
@@ -71,6 +87,10 @@ int csh_launch(char **args);
  * @param args - command with arguments to run
  */
 int csh_execute(csh_t *csh, char **args);
+
+
+/******************************************************************************/
+
 
 /* a list of builtin command names
  */
