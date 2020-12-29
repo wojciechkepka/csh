@@ -12,7 +12,7 @@ const char *builtin_commands[] =
     "export",
 };
 
-int (*builtin_funcs[]) (char **) =
+int (*builtin_funcs[]) (csh_t *, char **) =
 {
     &csh_cd, 
     &csh_help, 
@@ -22,12 +22,12 @@ int (*builtin_funcs[]) (char **) =
 };
 
 
-void _csh_cd(char *path)
+void _csh_cd(csh_t *csh, char *path)
 {
     char *p;
     if (path[0] == '~')
     {
-        p = csh_expand_tilde(path);
+        p = csh_expand_tilde(csh->userhome, path);
         if (p == NULL) {
             return;
         }
@@ -46,28 +46,28 @@ void _csh_cd(char *path)
     }
 }
 
-int csh_tilde(char **args)
+int csh_tilde(csh_t *csh, char **args)
 {
-    fprintf(stdout, "%s\n", USERHOME_p);
-    _csh_cd(USERHOME_p);
+    fprintf(stdout, "%s\n", csh->userhome);
+    _csh_cd(csh, csh->userhome);
 
     return 1;
 }
 
-int csh_cd(char **args)
+int csh_cd(csh_t *csh, char **args)
 {
     if (args[1] == NULL)
     {
-        _csh_cd(USERHOME_p);
+        _csh_cd(csh, csh->userhome);
     }
     else
     {
-        _csh_cd(args[1]);
+        _csh_cd(csh, args[1]);
     }
     return 1;
 }
 
-int csh_help(char **args)
+int csh_help(csh_t *csh, char **args)
 {
     printf(
         "csh - yet another shell in C\n"
@@ -83,12 +83,12 @@ int csh_help(char **args)
     return 1;
 }
 
-int csh_exit(char **args)
+int csh_exit(csh_t *csh, char **args)
 {
     return 0;
 }
 
-int csh_export(char **args)
+int csh_export(csh_t *csh, char **args)
 {
     if (args[1] == NULL)
     {
@@ -152,7 +152,7 @@ int csh_launch(char **args)
     return 1;
 }
 
-int csh_execute(char **args)
+int csh_execute(csh_t *csh, char **args)
 {
     if (args[0] == NULL) return 1;
 
@@ -160,7 +160,7 @@ int csh_execute(char **args)
     {
         if (strcmp(args[0], builtin_commands[i]) == 0)
         {
-            return (builtin_funcs[i])(args);
+            return (builtin_funcs[i])(csh, args);
         }
     }
 

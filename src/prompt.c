@@ -1,40 +1,34 @@
 #include "prompt.h"
 
-void csh_prompt_print(void)
-{
-    csh_prompt_update();
-    write(STDIN_FILENO, PROMPT->prompt, PROMPT->len);
-}
-
-void csh_prompt_init(int flags)
+prompt_t *csh_prompt_init(int flags, char *username, char *cwd)
 {
     size_t total_size = 5; // 5 = whitespace, @, >, and \0
-    PROMPT = malloc(sizeof(prompt_t));
-    if (!PROMPT)
+    prompt_t *p = malloc(sizeof(prompt_t));
+    if (!p)
     {
         fprintf(stderr, "failed to allocate memory for prompt");
-        return;
+        return NULL;
     }
-    PROMPT->flags = flags;
+    p->flags = flags;
     if (flags & F_USER)
     {
-        total_size += strlen(USERNAME_p);
-        PROMPT->user = USERNAME_p;
+        total_size += strlen(username);
+        p->user = username;
     }
     else
     {
-        PROMPT->user = NULL;
+        p->user = NULL;
     }
     
 
     if (flags & F_CWD)
     {
-        total_size += strlen(CWD_p);
-        PROMPT->cwd = CWD_p;
+        total_size += strlen(cwd);
+        p->cwd = cwd;
     }
     else
     {
-        PROMPT->cwd = NULL;
+        p->cwd = NULL;
     }
     
 
@@ -42,41 +36,49 @@ void csh_prompt_init(int flags)
     if (!prompt)
     {
         fprintf(stderr, "failed to allocate memory for prompt");
-        return;
+        return NULL;
     }
-    PROMPT->prompt = prompt;
-    csh_prompt_update();
+    p->prompt = prompt;
+    csh_prompt_update(p);
+
+    return p;
 }
 
-void csh_prompt_update(void)
+void csh_prompt_update(prompt_t *p)
 {
-    PROMPT->prompt[0] = '\0';
+    p->prompt[0] = '\0';
 
-    if (PROMPT->flags & F_USER)
+    if (p->flags & F_USER)
     {
-        strcat(PROMPT->prompt, PROMPT->user);
-        strcat(PROMPT->prompt, "@");
+        strcat(p->prompt, p->user);
+        strcat(p->prompt, "@");
     }
 
-    if (PROMPT->flags & F_CWD)
+    if (p->flags & F_CWD)
     {
-        strcat(PROMPT->prompt, PROMPT->cwd); 
+        strcat(p->prompt, p->cwd); 
     }
 
-    if (PROMPT->flags & F_DELIM)
+    if (p->flags & F_DELIM)
     {
-        strcat(PROMPT->prompt, " > ");
+        strcat(p->prompt, " > ");
     }
     else
     {
-        strcat(PROMPT->prompt, " ");
+        strcat(p->prompt, " ");
     }
     
-    PROMPT->len = strlen(PROMPT->prompt);
+    p->len = strlen(p->prompt);
 }
 
-void csh_prompt_free(void)
+void csh_prompt_print(prompt_t *p)
 {
-    free(PROMPT->prompt);
-    free(PROMPT);
+    csh_prompt_update(p);
+    write(STDOUT_FILENO, p->prompt, p->len);
+}
+
+void csh_prompt_free(prompt_t *p)
+{
+    free(p->prompt);
+    free(p);
 }

@@ -10,6 +10,7 @@
 #include "line.h"
 #include "prompt.h"
 #include "env.h"
+#include "csh.h"
 
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
@@ -32,23 +33,24 @@ void csh_sigusr_handler(int _) {
 
 /* initializes static variables like uid, username and cwd
  */
-void csh_init(void)
+void csh_init_signals(void)
 {
     signal(SIGINT, csh_sigint_handler);
     signal(SIGUSR1, csh_sigusr_handler);
-    csh_set_uid();
-    csh_set_username();
-    csh_set_cwd();
-    csh_set_user_home();
-    csh_prompt_init(F_ALL);
-    atexit(csh_prompt_free);
 }
 
 /* main loop of csh
  */
 void csh_loop(void)
 {
-    csh_init();
+    csh_init_signals();
+
+    csh_t *csh = csh_new();
+    if (!csh)
+    {
+        fprintf(stderr, "failed to create csh");
+        exit(EXIT_FAILURE);
+    }
 
     char *line;
     char **args;
@@ -56,18 +58,15 @@ void csh_loop(void)
 
     do
     {
-        csh_set_uid();
-        csh_set_username_if_changed();
-        csh_set_cwd();
-        csh_prompt_print();
-        line = csh_readline();
+        csh_update(csh);
+        line = csh_readline(csh->prompt);
         if (line == NULL)
         {
             continue;
         }
         
         args = csh_split_line(line);
-        status = csh_execute(args);
+        status = csh_execute(csh, args);
 
         free(args);
         free(line);
@@ -79,5 +78,6 @@ void csh_loop(void)
 int main(void)
 {
     csh_loop();
+
     return EXIT_SUCCESS;
 }

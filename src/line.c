@@ -47,10 +47,6 @@ int csh_readkey(void)
             }
             else
             {
-                if (read(STDIN_FILENO, &seq[2], 1) != 1) return ch;
-                if (seq[2] == '~')
-                {
-
                 switch (seq[1])
                 {
                     case 'A': return ARROW_UP;
@@ -59,7 +55,6 @@ int csh_readkey(void)
                     case 'D': return ARROW_LEFT;
                     case 'H': return HOME_KEY;
                     case 'F': return END_KEY;
-                }
                 }
             }
             
@@ -81,7 +76,7 @@ int csh_readkey(void)
     }
 }
 
-char *csh_readline(void)
+char *csh_readline(prompt_t *prompt)
 {
     size_t bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
@@ -95,6 +90,7 @@ char *csh_readline(void)
     int key;
     size_t pos = 0, max_pos = 0;
 
+    csh_prompt_print(prompt);
     csh_enable_raw_mode();
     while (true)
     {
@@ -130,7 +126,7 @@ char *csh_readline(void)
 
             case CTRL_L:
                 csh_clear();
-                csh_prompt_print();
+                csh_prompt_print(prompt);
                 fflush(stdout);
                 fflush(stdin);
                 write(STDOUT_FILENO, buf, max_pos);
@@ -139,19 +135,18 @@ char *csh_readline(void)
             case CTRL_D:
                 fflush(stdout);
                 fflush(stdin);
-                free(buf);
                 kill(getpid(), SIGUSR1);
 
             case DEL:
                 if (pos > 0)
                 {
-                    write(STDIN_FILENO, "\b\033[s\033[0K", 8);
+                    write(STDOUT_FILENO, "\b\033[s\033[0K", 8);
                     for(size_t c = pos - 1; c < max_pos; c++)
                     {
                         buf[c] = buf[c+1];
-                        write(STDIN_FILENO, &buf[c+1], 1);
+                        write(STDOUT_FILENO, &buf[c+1], 1);
                     }
-                    write(STDIN_FILENO, "\033[u", 3);
+                    write(STDOUT_FILENO, "\033[u", 3);
                     pos--;
                     max_pos--;
                 }
@@ -163,12 +158,12 @@ char *csh_readline(void)
                 buf[max_pos] = '\0';
                 fflush(stdin);
                 fflush(stdout);
-                write(STDIN_FILENO, "\n", 1);
+                write(STDOUT_FILENO, "\n", 1);
                 return buf;
         }
 
         buf[pos++] = (char)key;
-        write(STDIN_FILENO, &key, 1);
+        write(STDOUT_FILENO, &key, 1);
 
         if (pos >= bufsize)
         {

@@ -1,15 +1,15 @@
 #include "path.h"
 
-char *csh_expand_tilde(char *path)
+char *csh_expand_tilde(char *home, char *path)
 {
-    char *expanded = malloc(sizeof(*USERHOME_p) + sizeof(path));
+    char *expanded = malloc((strlen(home) + strlen(path)) * sizeof(char));
     if (!expanded)
     {
         fprintf(stderr, "failed to allocate memory to expand path");
         return NULL;
     }
-
-    strcat(expanded, USERHOME_p);
+    expanded[0] = '\0';
+    strcat(expanded, home);
     strcat(expanded, path + 1); // skip ~ 
 
     return expanded;

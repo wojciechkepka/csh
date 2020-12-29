@@ -39,9 +39,10 @@ int csh_readkey(void);
  * This function may quit the main process if there is an error with allocation or reallocation of
  * the input buffer.
  *
+ * @arguments prompt a prompt to print on screen clear
  * @returns a line of input from stdin
  * */
-char *csh_readline(void);
+char *csh_readline(prompt_t *prompt);
 
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.
