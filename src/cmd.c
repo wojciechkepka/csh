@@ -79,7 +79,7 @@ int csh_help(csh_t *csh, char **args)
         "Available built-in commands:\n"
     );
 
-    for (int i = 0; i < CSH_BUILTIN_COUNT; i++)
+    for (size_t i = 0; i < CSH_BUILTIN_COUNT; i++)
     {
         printf("\t- %s\n", builtin_commands[i]);
     }
@@ -187,7 +187,7 @@ int csh_execute(csh_t *csh, char **args)
 {
     if (args[0] == NULL) return 1;
 
-    for (int i = 0; i < CSH_BUILTIN_COUNT; i++)
+    for (size_t i = 0; i < CSH_BUILTIN_COUNT; i++)
     {
         if (strcmp(args[0], builtin_commands[i]) == 0)
         {

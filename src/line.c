@@ -48,6 +48,7 @@ int csh_readkey(void)
                             // case '8': // F7
                             // case '9': // F8
                         }
+                        break;
                     case '2':
                         if (read(STDIN_FILENO, &seq[3], 1) != 1) return ch;
                         switch (seq[2])
@@ -57,6 +58,7 @@ int csh_readkey(void)
                             // case '3': // F11
                             // case '4': // F12
                         }
+                        break;
 
                     case '3':
                         if (seq[2] == '~') return DEL_KEY;
