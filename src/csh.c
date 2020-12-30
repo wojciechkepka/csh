@@ -62,5 +62,6 @@ void csh_update(Csh *csh)
 void csh_free(Csh *csh)
 {
     prompt_free(csh->prompt);
+    history_free(csh->hist);
     free(csh);
 }
