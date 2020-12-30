@@ -111,7 +111,7 @@ int csh_readkey(void)
     }
 }
 
-char *csh_readline(csh_t *csh)
+char *csh_readline(Csh *csh)
 {
     size_t bufsize = CSH_INP_BUF_SIZE;
     char *buf = malloc(bufsize * sizeof(int));
@@ -125,7 +125,7 @@ char *csh_readline(csh_t *csh)
     int key;
     size_t pos = 0, max_pos = 0;
 
-    csh_prompt_print(csh->prompt);
+    prompt_print(stdout, csh->prompt);
     csh_enable_raw_mode();
     while (true)
     {
@@ -180,7 +180,7 @@ char *csh_readline(csh_t *csh)
 
             case CTRL_L:
                 csh_clear();
-                csh_prompt_print(csh->prompt);
+                prompt_print(stdout, csh->prompt);
                 fflush(stdout);
                 fflush(stdin);
                 write(STDOUT_FILENO, buf, max_pos);

@@ -58,9 +58,9 @@ void fread_reset(fmt_reader *f)
 # pragma GCC diagnostic pop
 /******************************************************************************/
 
-prompt_t *csh_prompt_init(char *username, char *cwd)
+Prompt *prompt_init(char *username, char *cwd)
 {
-    prompt_t *p = malloc(sizeof(prompt_t));
+    Prompt *p = malloc(sizeof(Prompt));
     if (!p)
     {
         fprintf(stderr, "failed to allocate memory for prompt");
@@ -70,9 +70,9 @@ prompt_t *csh_prompt_init(char *username, char *cwd)
     p->cwd = cwd;
 
     
-    p->len = csh_prompt_calculate_len(p);
+    p->len = prompt_calc_len(p);
 
-    csh_prompt_update_fmt(p);
+    prompt_update_fmt(p);
     char *prompt = malloc(p->len * sizeof(char));
     if (!prompt)
     {
@@ -80,37 +80,37 @@ prompt_t *csh_prompt_init(char *username, char *cwd)
         return NULL;
     }
     p->prompt = prompt;
-    csh_prompt_update(p);
+    prompt_update(p);
 
     return p;
 }
 
-void csh_prompt_set_fmt(prompt_t *p, const char *format)
+void prompt_set_fmt(Prompt *p, const char *format)
 {
     if (p->format) free(p->format);
     p->format = malloc((strlen(format) + 1) * sizeof(char));
     if (!p->format) return;
     strcpy(p->format, format);
-    p->len = csh_prompt_calculate_len(p);
+    p->len = prompt_calc_len(p);
 }
 
-void csh_prompt_update_fmt(prompt_t *p)
+void prompt_update_fmt(Prompt *p)
 {
     char *env;
     if ((env = getenv(CSH_FORMAT_ENV)) == NULL)
     {
-        csh_prompt_set_fmt(p, CSH_DEFAULT_PROMPT);
+        prompt_set_fmt(p, CSH_DEFAULT_PROMPT);
     }
     else
     {
         if ((strcmp(env, p->format)) != 0)
         {
-            csh_prompt_set_fmt(p, env);
+            prompt_set_fmt(p, env);
         }
     }
 }
 
-size_t csh_prompt_calculate_len(prompt_t *p)
+size_t prompt_calc_len(Prompt *p)
 {
     size_t len = 0;
     char *ret, *ret2;
@@ -144,9 +144,9 @@ size_t csh_prompt_calculate_len(prompt_t *p)
     return len;
 }
 
-void csh_prompt_update(prompt_t *p)
+void prompt_update(Prompt *p)
 {
-    csh_prompt_update_fmt(p);
+    prompt_update_fmt(p);
     fmt_reader *reader = fread_init(p->format);
     p->prompt[0] = '\0';
     char *ret, *ret2;
@@ -180,13 +180,13 @@ void csh_prompt_update(prompt_t *p)
     free(reader);
 }
 
-void csh_prompt_print(prompt_t *p)
+void prompt_print(FILE *f, Prompt *p)
 {
-    csh_prompt_update(p);
-    write(STDOUT_FILENO, p->prompt, p->len);
+    prompt_update(p);
+    write(fileno(f), p->prompt, p->len);
 }
 
-void csh_prompt_free(prompt_t *p)
+void prompt_free(Prompt *p)
 {
     free(p->prompt);
     free(p);

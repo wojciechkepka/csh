@@ -18,7 +18,7 @@ typedef struct
     char **elems;
     size_t capacity;
     size_t back;
-} history_t;
+} History;
 
 
 /* initializes a history instance with specified capacity. 
@@ -26,14 +26,14 @@ typedef struct
  * @param capacity base capacity
  * @returns a pointer to history instance or null if allocations failed
  */
-history_t *history_init(size_t capacity);
+History *history_init(size_t capacity);
 
 /* checks whether maximum capacity has been reached
  *
  * @param hist a pointer to history instance
  * @returns true if hist is full and false otherwise
  */
-bool history_is_full(history_t *hist);
+bool history_is_full(History *hist);
 
 /* adds a element to history by allocating space and copying its content. 
  * If number of elements exceeds capacity realloc is called to allocate
@@ -43,13 +43,13 @@ bool history_is_full(history_t *hist);
  * @param item an item to add to hist
  * @returns 0 if operation succeded, -1 if allocation or reallocation failed
  */
-int history_add(history_t *hist, char *item);
+int history_add(History *hist, char *item);
 
 /* frees up memory of all components of history instance
  *
  * @param hist a pointer to history instance
  */
-void history_free(history_t *hist);
+void history_free(History *hist);
 
 
 #endif // CSH_HISTORYH

@@ -15,38 +15,33 @@
 
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
-static volatile int got_ctrl_c = 0;
-
-volatile int *GOT_CTRL_C_p = &got_ctrl_c;
-
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
-void csh_sigint_handler(int _) {
-    got_ctrl_c = 1;
-}
+void _sigint_handler(int _) {}
 
-void csh_sigusr_handler(int _) {
+void _sigusr_handler(int _) 
+{
     printf("\nC you later :}\n");
     exit(EXIT_SUCCESS);
 }
-#pragma GCC diagnostic pop //-Wunused-parameters
+#pragma GCC diagnostic pop
 
 /* initializes static variables like uid, username and cwd
  */
-void csh_init_signals(void)
+void _init_signals(void)
 {
-    signal(SIGINT, csh_sigint_handler);
-    signal(SIGUSR1, csh_sigusr_handler);
+    signal(SIGINT, _sigint_handler);
+    signal(SIGUSR1, _sigusr_handler);
 }
 
 /* main loop of csh
  */
 void csh_loop(void)
 {
-    csh_init_signals();
+    _init_signals();
 
-    csh_t *csh = csh_new();
+    Csh *csh = csh_new();
     if (!csh)
     {
         fprintf(stderr, "failed to create csh");

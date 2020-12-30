@@ -1,8 +1,8 @@
 #include "csh.h"
 
-csh_t *csh_new(void)
+Csh *csh_new(void)
 {
-    csh_t *csh = malloc(sizeof(csh_t));
+    Csh *csh = malloc(sizeof(Csh));
     if (!csh)
     {
         //err
@@ -12,7 +12,7 @@ csh_t *csh_new(void)
     return csh_init_env(csh);
 }
 
-csh_t *csh_init_env(csh_t *csh)
+Csh *csh_init_env(Csh *csh)
 {
     csh_set_cwd(csh);
     csh_get_user_home(csh->userhome);
@@ -24,7 +24,7 @@ csh_t *csh_init_env(csh_t *csh)
     csh_get_username(csh->username);
     csh->uid = getuid();
 
-    csh->prompt = csh_prompt_init(csh->username, csh->cwd);
+    csh->prompt = prompt_init(csh->username, csh->cwd);
     if (!csh->prompt)
     {
         return NULL;
@@ -33,7 +33,7 @@ csh_t *csh_init_env(csh_t *csh)
     return csh;
 }
 
-void csh_set_cwd(csh_t *csh)
+void csh_set_cwd(Csh *csh)
 {
     if (getcwd(csh->cwd, sizeof(csh->cwd)) == NULL)
     {
@@ -42,7 +42,7 @@ void csh_set_cwd(csh_t *csh)
 }
 
 
-void csh_update(csh_t *csh)
+void csh_update(Csh *csh)
 {
     __uid_t uid = getuid();
     if (uid != csh->uid)
@@ -59,8 +59,8 @@ void csh_update(csh_t *csh)
     
 }
 
-void csh_free(csh_t *csh)
+void csh_free(Csh *csh)
 {
-    csh_prompt_free(csh->prompt);
+    prompt_free(csh->prompt);
     free(csh);
 }

@@ -14,40 +14,54 @@
 typedef struct {
     char *user, *cwd, *prompt, *format;
     size_t len;
-} prompt_t;
+} Prompt;
 
 /* initializes a new prompt by dynamically allocating memory. It is the callers duty to free up
- * resources with csh_prompt_free after use. The prompt is configurable by format string
+ * resources with prompt_free after use. The prompt is configurable by format string
  * read from CSH_FMT environment variable.
  * 
  * @param username name of the user to display
  * @param cwd current working directory to diplsay
- * @returns a pointer to prompt_t
+ * @returns a pointer to Prompt
  */
-prompt_t *csh_prompt_init(char *username, char *cwd);
+Prompt *prompt_init(char *username, char *cwd);
 
 /* frees up all resources used by a prompt
  *
  * @param p prompt to free
  */
-void csh_prompt_free(prompt_t *p);
+void prompt_free(Prompt *p);
 
+/* calculates length of expanded format string
+ *
+ * @param p a pointer to a prompt
+ */
+size_t prompt_calc_len(Prompt *p);
 
-size_t csh_prompt_calculate_len(prompt_t *p);
+/* updates format string by checking if value of env variable CSH_FMT changed
+ *
+ * @param p a prompt to update
+ */
+void prompt_update_fmt(Prompt *p);
 
-void csh_prompt_update_fmt(prompt_t *p);
-void csh_prompt_set_fmt(prompt_t *p, const char *format);
+/* sets the format string of this prompt
+ *
+ * @param p a prompt to edit
+ * @param format an fmt string to set
+ */
+void prompt_set_fmt(Prompt *p, const char *format);
 
 /* updates a prompt string in case one of the fields changed
  *
  * @params p prompt to update
  */
-void csh_prompt_update(prompt_t *p);
+void prompt_update(Prompt *p);
 
-/* prints a prompt to stdout
+/* prints a prompt to specified FILE
  *
- * @param p prmopt to print
+ * @param f output file
+ * @param p prompt to print
  */
-void csh_prompt_print(prompt_t *p);
+void prompt_print(FILE *f, Prompt *p);
 
 #endif // CSH_PROMPTH

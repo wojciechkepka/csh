@@ -20,7 +20,7 @@
 #define CTRL_D 0x04
 #define BACKSPACE 0x7F
 
-enum key_e {
+enum EKey {
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
     ARROW_UP,
@@ -33,12 +33,10 @@ enum key_e {
     DISABLED,
 };
 
-extern volatile int *GOT_CTRL_C_p;
-
 /* reads characters from stdin, if escape sequence `\x1b` is encountered tries to read
  * the full escape sequence and interpret it as a key like ARROW_UP or PAGE_DOWN.
  * 
- * @returns read char or key sequence as key_e
+ * @returns read char or key sequence as EKey
  */
 int csh_readkey(void);
 
@@ -52,7 +50,7 @@ int csh_readkey(void);
  * @arguments csh a pointer to a csh instance
  * @returns a line of input from stdin
  * */
-char *csh_readline(csh_t *csh);
+char *csh_readline(Csh *csh);
 
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.

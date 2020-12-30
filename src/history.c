@@ -1,8 +1,8 @@
 #include "history.h"
 
-history_t *history_init(size_t capacity)
+History *history_init(size_t capacity)
 {
-    history_t *hist = malloc(sizeof(history_t));
+    History *hist = malloc(sizeof(History));
     char **elems = malloc(capacity * sizeof(char *));
     if (!elems)
     {
@@ -16,12 +16,12 @@ history_t *history_init(size_t capacity)
     return hist;
 }
 
-bool history_is_full(history_t *hist)
+bool history_is_full(History *hist)
 {
     return hist->back == (hist->capacity - 1);
 }
 
-int history_add(history_t *hist, char *item)
+int history_add(History *hist, char *item)
 {
     if (hist->back > hist->capacity - 1) hist->back = 0;
     if (history_is_full(hist))
@@ -41,7 +41,7 @@ int history_add(history_t *hist, char *item)
     return 0;
 }
 
-void history_free(history_t *hist)
+void history_free(History *hist)
 {
     for (size_t i = 0; i < hist->back; i++)
     {

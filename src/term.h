@@ -12,8 +12,6 @@
 static struct termios ORIG_TERM_SETTINGS;
 #pragma GCC diagnostic pop
 
-extern const char *CLEAR_SCREEN_ANSI;
-
 /* sets terminal back to original settings.
  */
 void csh_disable_raw_mode(void);

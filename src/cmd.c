@@ -14,7 +14,7 @@ const char *builtin_commands[] =
     "history",
 };
 
-int (*builtin_funcs[]) (csh_t *, char **) =
+int (*builtin_funcs[]) (Csh *, char **) =
 {
     &csh_tilde,
     &csh_cd, 
@@ -26,7 +26,7 @@ int (*builtin_funcs[]) (csh_t *, char **) =
 };
 
 
-void _csh_cd(csh_t *csh, char *path)
+void _csh_cd(Csh *csh, char *path)
 {
     char *p;
     if (path[0] == '~')
@@ -50,7 +50,7 @@ void _csh_cd(csh_t *csh, char *path)
     }
 }
 
-int csh_tilde(csh_t *csh, char **args)
+int csh_tilde(Csh *csh, char **args)
 {
     fprintf(stdout, "%s\n", csh->userhome);
     _csh_cd(csh, csh->userhome);
@@ -58,7 +58,7 @@ int csh_tilde(csh_t *csh, char **args)
     return 1;
 }
 
-int csh_cd(csh_t *csh, char **args)
+int csh_cd(Csh *csh, char **args)
 {
     if (args[1] == NULL)
     {
@@ -71,7 +71,7 @@ int csh_cd(csh_t *csh, char **args)
     return 1;
 }
 
-int csh_help(csh_t *csh, char **args)
+int csh_help(Csh *csh, char **args)
 {
     printf(
         "csh - yet another shell in C\n"
@@ -87,13 +87,13 @@ int csh_help(csh_t *csh, char **args)
     return 1;
 }
 
-int csh_exit(csh_t *csh, char **args)
+int csh_exit(Csh *csh, char **args)
 {
     return 0;
 }
 
 
-int csh_export(csh_t *csh, char **args)
+int csh_export(Csh *csh, char **args)
 {
     if (args[1] == NULL)
     {
@@ -109,7 +109,7 @@ int csh_export(csh_t *csh, char **args)
             char *name = malloc((len + 1) * sizeof(char));
             if (!name)
             {
-                fprintf(stderr, "failed to allocate memory for env var");
+                fprintf(stderr, "failed to allocate memory for env var\n");
             }
             else
             {
@@ -124,11 +124,11 @@ int csh_export(csh_t *csh, char **args)
     return 1;
 }
 
-int csh_unset(csh_t *csh, char **args)
+int csh_unset(Csh *csh, char **args)
 {
     if (args[1] == NULL)
     {
-        fprintf(stderr, "missing variable name to unset");
+        fprintf(stderr, "missing variable name to unset\n");
     }
     else
     {
@@ -139,7 +139,7 @@ int csh_unset(csh_t *csh, char **args)
     return 1;
 }
 
-int csh_history(csh_t *csh, char **args)
+int csh_history(Csh *csh, char **args)
 {
     for (size_t i = 0; i <= csh->hist->back - 1; i++)
     {
@@ -183,7 +183,7 @@ int csh_launch(char **args)
     return 1;
 }
 
-int csh_execute(csh_t *csh, char **args)
+int csh_execute(Csh *csh, char **args)
 {
     if (args[0] == NULL) return 1;
 
