@@ -46,7 +46,7 @@ csh_readkey(void)
     {
         if (nread == -1 && errno != EAGAIN)
         {
-            return -1;
+            return -2;
         }
     }
 
@@ -163,7 +163,7 @@ csh_readline(Csh *csh)
         key = csh_readkey();
         switch (key)
         {
-            case -1: // failed to read key
+            case -2: // failed to read key
                 free(buf);
                 return NULL;
             case ARROW_DOWN:

@@ -18,7 +18,7 @@ fmt_reader *fread_init(char *format)
 
     f->pos = -1;
     f->format = format;
-    f->len = strlen(f->format);
+    f->len = format == NULL ? 0 : strlen(f->format);
 
     return f;
 }
@@ -68,9 +68,6 @@ Prompt *prompt_init(char *username, char *cwd)
     p->user = username;
     p->cwd = cwd;
 
-    
-    p->len = prompt_calc_len(p);
-
     prompt_update_fmt(p);
     char *prompt = malloc(p->len * sizeof(char));
     if (!prompt)
@@ -93,20 +90,24 @@ void prompt_set_fmt(Prompt *p, const char *format)
     p->len = prompt_calc_len(p);
 }
 
-void prompt_update_fmt(Prompt *p)
+int prompt_update_fmt(Prompt *p)
 {
     char *env;
     if ((env = getenv(CSH_FORMAT_ENV)) == NULL)
     {
         prompt_set_fmt(p, CSH_DEFAULT_PROMPT);
+        return 1;
     }
     else
     {
         if ((strcmp(env, p->format)) != 0)
         {
             prompt_set_fmt(p, env);
+            return 1;
         }
     }
+
+    return 0;
 }
 
 size_t prompt_calc_len(Prompt *p)
@@ -145,10 +146,18 @@ size_t prompt_calc_len(Prompt *p)
 
 void prompt_update(Prompt *p)
 {
-    prompt_update_fmt(p);
+    int changed = prompt_update_fmt(p);
+    if (!changed) return;
+
+    if (strlen(p->prompt) < p->len)
+    {
+        p->prompt = realloc(p->prompt, sizeof(char) * (p->len + 1));
+        if (!p->prompt) return;
+    }
     fmt_reader *reader = fread_init(p->format);
     p->prompt[0] = '\0';
     char *ret, *ret2;
+
 
     while((ret = fread_next(reader)) != NULL)
     {
@@ -173,8 +182,6 @@ void prompt_update(Prompt *p)
             strncat(p->prompt, ret, 1);
         }
     }
-    
-    p->len = strlen(p->prompt);
 
     free(reader);
 }
@@ -188,5 +195,6 @@ void prompt_print(FILE *f, Prompt *p)
 void prompt_free(Prompt *p)
 {
     free(p->prompt);
+    free(p->format);
     free(p);
 }

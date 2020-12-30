@@ -72,7 +72,7 @@ char *csh_readline(Csh *csh);
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.
  *
- * On error returns -1 and sets errno to appropriate value.
+ * On error returns -2 and sets errno to appropriate value.
  *
  * @param line a line of input to split up
  * @return parsed tokens

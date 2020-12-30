@@ -41,8 +41,9 @@ size_t prompt_calc_len(Prompt *p);
 /* updates format string by checking if value of env variable CSH_FMT changed
  *
  * @param p a prompt to update
+ * @returns 1 if something changed and 0 otherwise
  */
-void prompt_update_fmt(Prompt *p);
+int prompt_update_fmt(Prompt *p);
 
 /* sets the format string of this prompt
  *
