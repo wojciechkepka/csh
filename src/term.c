@@ -1,5 +1,4 @@
 #include "term.h"
-#include "string.h"
 
 const char *CLEAR_SCREEN_ANSI = "\033[1;1H\033[2J";
 
