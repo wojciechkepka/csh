@@ -73,6 +73,8 @@ void csh_loop(void)
         free(line);
     }
     while (status);
+
+    csh_free(csh);
 }
 
 
