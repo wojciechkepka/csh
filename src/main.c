@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cmd.h"
 #include "line.h"
 #include "prompt.h"
@@ -56,8 +57,10 @@ void csh_loop(void)
     {
         csh_update(csh);
         line = csh_readline(csh);
-        if (line == NULL)
+        if (strcmp(line, "") == 0 || line == NULL)
         {
+            status = 1;
+            free(line);
             continue;
         }
 
