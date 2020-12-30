@@ -10,7 +10,7 @@
 
 /* gets this process uid home directory.
  *
- * On error prints the error to stdout and assigns NULL to passed in pointer.
+ * On error sets errno and sets value of home to NULL
  * 
  * @param home pointer to a string where value will be placed
  */
@@ -18,17 +18,16 @@ void csh_get_user_home(char *home);
 
 /* gets this process uid username.
  *
- * On error prints the error to stdout and assigns NULL to passed in pointer.
+ * On error sets errno and sets value of name to NULL
  * 
- * @param home pointer to a string where value will be placed
+ * @param name pointer to a string where value will be placed
  */
 void csh_get_username(char *name);
 
 /* expands a path starting with `~` by allocating a new string on the heap and concating
  * current users home with the rest of the path.
  * 
- * If this function fails to allocate space for new string a NULL pointer is returned
- * and an error message is printed to stdout.
+ * On error returns a NULL pointer and errno is set
  * 
  * @param path a path to expand
  * @returns expanded path

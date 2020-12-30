@@ -59,6 +59,10 @@ void csh_loop(void)
         line = csh_readline(csh);
         if (strcmp(line, "") == 0 || line == NULL)
         {
+            if (line == NULL)
+            {
+                fprintf(stderr, "Failed to read line from stdin: %s\n", strerror(errno));
+            }
             status = 1;
             free(line);
             continue;

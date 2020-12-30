@@ -63,7 +63,6 @@ Prompt *prompt_init(char *username, char *cwd)
     Prompt *p = malloc(sizeof(Prompt));
     if (!p)
     {
-        fprintf(stderr, "failed to allocate memory for prompt");
         return NULL;
     }
     p->user = username;
@@ -76,9 +75,9 @@ Prompt *prompt_init(char *username, char *cwd)
     char *prompt = malloc(p->len * sizeof(char));
     if (!prompt)
     {
-        fprintf(stderr, "failed to allocate memory for prompt");
         return NULL;
-    }
+    } 
+
     p->prompt = prompt;
     prompt_update(p);
 

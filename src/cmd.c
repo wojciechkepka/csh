@@ -33,6 +33,7 @@ void _csh_cd(Csh *csh, char *path)
     {
         p = csh_expand_tilde(csh->userhome, path);
         if (p == NULL) {
+            fprintf(stderr, "Failed to expand path `%s`: %s", path, strerror(errno));
             return;
         }
         if (chdir(p) != 0)

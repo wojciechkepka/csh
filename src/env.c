@@ -8,7 +8,6 @@ void csh_get_user_home(char *home)
     u = getpwuid(getuid());
     if (u == NULL)
     {
-        fprintf(stderr, "Error: failed to get passwd database entry of current user.");
         home = NULL;
     }
     else
@@ -24,7 +23,6 @@ void csh_get_username(char *name)
     u = getpwuid(getuid());
     if (u == NULL)
     {
-        fprintf(stderr, "Error: failed to get passwd database entry of current user.");
         name = NULL;
     }
     else
@@ -36,11 +34,7 @@ void csh_get_username(char *name)
 char *csh_expand_tilde(char *home, char *path)
 {
     char *expanded = malloc((strlen(home) + strlen(path)) * sizeof(char));
-    if (!expanded)
-    {
-        fprintf(stderr, "failed to allocate memory to expand path");
-        return NULL;
-    }
+    if (!expanded) return NULL;
     expanded[0] = '\0';
     strcat(expanded, home);
     strcat(expanded, path + 1); // skip ~ 

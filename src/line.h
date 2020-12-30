@@ -62,8 +62,7 @@ int csh_readkey(void);
  * allocates a buffer of CSH_INP_BUF_SIZE size and extends it as needed. It is the callers duty to
  * free allocated buffer after use.
  *
- * This function may quit the main process if there is an error with allocation or reallocation of
- * the input buffer.
+ * On error returns a null pointer and sets errno to appropriate value.
  *
  * @arguments csh a pointer to a csh instance
  * @returns a line of input from stdin
@@ -73,8 +72,7 @@ char *csh_readline(Csh *csh);
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.
  *
- * This function may quit the main process if there is an error with allocation or reallocation of
- * the token buffer.
+ * On error returns -1 and sets errno to appropriate value.
  *
  * @param line a line of input to split up
  * @return parsed tokens

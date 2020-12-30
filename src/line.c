@@ -46,8 +46,7 @@ csh_readkey(void)
     {
         if (nread == -1 && errno != EAGAIN)
         {
-            perror("csh");
-            exit(EXIT_FAILURE);
+            return -1;
         }
     }
 
@@ -152,8 +151,7 @@ csh_readline(Csh *csh)
 
     if (!buf)
     {
-        fprintf(stderr, "Error: failed to allocate input buffer");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     int key;
     size_t pos = 0, max_pos = 0;
@@ -165,6 +163,9 @@ csh_readline(Csh *csh)
         key = csh_readkey();
         switch (key)
         {
+            case -1: // failed to read key
+                free(buf);
+                return NULL;
             case ARROW_DOWN:
             case ARROW_UP:
             case PAGE_UP:
