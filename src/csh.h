@@ -28,19 +28,6 @@ typedef struct
  */
 Csh *csh_new(void);
 
-/* initializes fields of csh like username, current working directory or user home
- *
- * @returns a pointer to csh on success and null pointer on failure
- */
-Csh *csh_init_env(Csh *csh);
-
-/* sets cwd field of csh to directory of this process. Usually used
- * through csh_init_env or csh_update
- *
- * @param csh a pointer to csh
- */
-void csh_set_cwd(Csh *csh);
-
 /* udates all fields of csh if uid changed otherwise only updates cwd
  *
  * @param csh a pointer to csh

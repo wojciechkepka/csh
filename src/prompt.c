@@ -1,9 +1,13 @@
 #include "prompt.h"
 
+/* calculates length of expanded format string
+ *
+ * @param p a pointer to a prompt
+ */
+static size_t prompt_calc_len(Prompt *p);
+
 /******************************************************************************/
 
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wmissing-prototypes"
 typedef struct
 {
     char *format;
@@ -11,7 +15,7 @@ typedef struct
     size_t len;
 } fmt_reader;
 
-fmt_reader *fread_init(char *format)
+static fmt_reader *fread_init(char *format)
 {
     fmt_reader *f = malloc(sizeof(fmt_reader));
     if (!f) return NULL;
@@ -23,12 +27,7 @@ fmt_reader *fread_init(char *format)
     return f;
 }
 
-bool fread_is_end(fmt_reader *f)
-{
-    return f->pos == (int)(f->len - 1);
-}
-
-char *fread_next(fmt_reader *f)
+static char *fread_next(fmt_reader *f)
 {
     if (f->pos == -1) f->pos = 0;
     if (f->pos <= (int)(f->len - 1))
@@ -41,7 +40,7 @@ char *fread_next(fmt_reader *f)
     return NULL;
 }
 
-char *fread_peek(fmt_reader *f)
+static char *fread_peek(fmt_reader *f)
 {
     if (f->pos <= (int)(f->len - 1))
     {
@@ -50,12 +49,19 @@ char *fread_peek(fmt_reader *f)
     return NULL;
 }
 
-void fread_reset(fmt_reader *f)
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wunused-function"
+static bool fread_is_end(fmt_reader *f)
+{
+    return f->pos == (int)(f->len - 1);
+}
+
+static void fread_reset(fmt_reader *f)
 {
     f->pos = -1;
 }
-
 # pragma GCC diagnostic pop
+
 /******************************************************************************/
 
 Prompt *prompt_init(char *username, char *cwd)
@@ -110,7 +116,7 @@ int prompt_update_fmt(Prompt *p)
     return 0;
 }
 
-size_t prompt_calc_len(Prompt *p)
+static size_t prompt_calc_len(Prompt *p)
 {
     size_t len = 0;
     char *ret, *ret2;

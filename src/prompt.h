@@ -32,12 +32,6 @@ Prompt *prompt_init(char *username, char *cwd);
  */
 void prompt_free(Prompt *p);
 
-/* calculates length of expanded format string
- *
- * @param p a pointer to a prompt
- */
-size_t prompt_calc_len(Prompt *p);
-
 /* updates format string by checking if value of env variable CSH_FMT changed
  *
  * @param p a prompt to update

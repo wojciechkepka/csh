@@ -1,5 +1,10 @@
 #include "csh.h"
 
+/* local funcs */
+static Csh *csh_init_env(Csh *csh);
+static void csh_set_cwd(Csh *csh);
+/**/
+
 Csh *csh_new(void)
 {
     Csh *csh = malloc(sizeof(Csh));
@@ -12,7 +17,11 @@ Csh *csh_new(void)
     return csh_init_env(csh);
 }
 
-Csh *csh_init_env(Csh *csh)
+/* initializes fields of csh like username, current working directory or user home
+ *
+ * @returns a pointer to csh on success and null pointer on failure
+ */
+static Csh *csh_init_env(Csh *csh)
 {
     csh_set_cwd(csh);
     csh_get_user_home(csh->userhome);
@@ -41,7 +50,12 @@ Csh *csh_init_env(Csh *csh)
     return csh;
 }
 
-void csh_set_cwd(Csh *csh)
+/* sets cwd field of csh to directory of this process. Usually used
+ * through csh_init_env or csh_update
+ *
+ * @param csh a pointer to csh
+ */
+static void csh_set_cwd(Csh *csh)
 {
     if (getcwd(csh->cwd, sizeof(csh->cwd)) == NULL)
     {
