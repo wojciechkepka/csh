@@ -33,7 +33,7 @@ void _csh_cd(Csh *csh, char *path)
     {
         p = csh_expand_tilde(csh->userhome, path);
         if (p == NULL) {
-            fprintf(stderr, "Failed to expand path `%s`: %s", path, strerror(errno));
+            _ERRNOF("failed to expand path `%s`", path);
             return;
         }
         if (chdir(p) != 0)
@@ -98,7 +98,7 @@ int csh_export(Csh *csh, char **args)
 {
     if (args[1] == NULL)
     {
-        fprintf(stderr, "missing variable to export. Example `FOO=bar`\n");
+        _ERR("missing variable to export. Example `FOO=bar`");
     }
     else
     {
@@ -110,7 +110,7 @@ int csh_export(Csh *csh, char **args)
             char *name = malloc((len + 1) * sizeof(char));
             if (!name)
             {
-                fprintf(stderr, "failed to allocate memory for env var\n");
+                _ERR("failed to allocate memory for env var");
             }
             else
             {
@@ -129,7 +129,7 @@ int csh_unset(Csh *csh, char **args)
 {
     if (args[1] == NULL)
     {
-        fprintf(stderr, "missing variable name to unset\n");
+        _ERR("missing variable name to unset");
     }
     else
     {

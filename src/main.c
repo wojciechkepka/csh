@@ -13,6 +13,7 @@
 #include "env.h"
 #include "csh.h"
 #include "history.h"
+#include "defs.h"
 
 #pragma GCC diagnostic ignored "-Wmissing-prototypes"
 
@@ -45,7 +46,7 @@ void csh_loop(void)
     Csh *csh = csh_new();
     if (!csh)
     {
-        fprintf(stderr, "failed to create csh");
+        _ERR("failed to create csh instance");
         exit(EXIT_FAILURE);
     }
 
@@ -61,7 +62,7 @@ void csh_loop(void)
         {
             if (line == NULL)
             {
-                fprintf(stderr, "Failed to read line from stdin: %s\n", strerror(errno));
+                _ERRNO("failed to read line from stdin");
             }
             status = 1;
             free(line);

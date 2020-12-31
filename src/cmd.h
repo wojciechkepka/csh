@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include "env.h"
 #include "csh.h"
+#include "defs.h"
 
 
 /******************************************************************************/

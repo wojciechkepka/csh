@@ -2,11 +2,11 @@
 #define CSH_CSHH
 
 #include <linux/limits.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include "prompt.h"
 #include "env.h"
 #include "history.h"
+#include "defs.h"
 
 #define CSH_HISTORY_CAPACITY 512
 

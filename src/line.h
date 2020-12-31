@@ -54,6 +54,8 @@ void csh_clear(void);
 /* reads characters from stdin, if escape sequence `\x1b` is encountered tries to read
  * the full escape sequence and interpret it as a key like ARROW_UP or PAGE_DOWN.
  * 
+ * On error returns -2 and sets errno to appropriate value.
+ * 
  * @returns read char or key sequence as EKey
  */
 int csh_readkey(void);
@@ -72,7 +74,7 @@ char *csh_readline(Csh *csh);
 /* csh_split_line - splits input line into separate arguments by whitespace. This implementation is temporary and
  * will change into something more robust that handles "" and other nuances in the future.
  *
- * On error returns -2 and sets errno to appropriate value.
+ * On error returns a null pointer and sets errno to appropriate value.
  *
  * @param line a line of input to split up
  * @return parsed tokens

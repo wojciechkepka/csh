@@ -277,8 +277,7 @@ csh_readline(Csh *csh)
             buf = realloc(buf, bufsize);
             if (!buf)
             {
-                fprintf(stderr, "Error: failed to allocate input buffer");
-                exit(EXIT_FAILURE);
+                return NULL;
             }
         }
 
@@ -296,8 +295,7 @@ csh_split_line(char *line)
 
     if (!tokens)
     {
-        fprintf(stderr, "Error: failed to allocate token buffer");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     token = strtok(line, CSH_TOK_DELIM);
@@ -313,8 +311,7 @@ csh_split_line(char *line)
 
             if (!tokens)
             {
-                fprintf(stderr, "Error: failed to allocate token buffer");
-                exit(EXIT_FAILURE);
+                return NULL;
             }
         }
 
