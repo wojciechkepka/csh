@@ -1,7 +1,7 @@
 #ifndef CSH_CSHH
 #define CSH_CSHH
 
-#include <linux/limits.h>
+#include <limits.h>
 #include <unistd.h>
 #include "prompt.h"
 #include "env.h"
@@ -17,7 +17,7 @@ typedef struct
     char cwd[PATH_MAX];
     char username[32];
     char userhome[PATH_MAX];
-    __uid_t uid;
+    uid_t uid;
     Prompt *prompt;
     History *hist;
 } Csh;

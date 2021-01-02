@@ -73,6 +73,7 @@ Prompt *prompt_init(char *username, char *cwd)
     }
     p->user = username;
     p->cwd = cwd;
+    p->format = NULL;
 
     prompt_update_fmt(p);
     char *prompt = malloc(p->len * sizeof(char));
@@ -89,7 +90,7 @@ Prompt *prompt_init(char *username, char *cwd)
 
 void prompt_set_fmt(Prompt *p, const char *format)
 {
-    if (p->format) free(p->format);
+    if (p->format != NULL) free(p->format);
     p->format = malloc((strlen(format) + 1) * sizeof(char));
     if (!p->format) return;
     strcpy(p->format, format);

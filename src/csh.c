@@ -66,7 +66,7 @@ static void csh_set_cwd(Csh *csh)
 
 void csh_update(Csh *csh)
 {
-    __uid_t uid = getuid();
+    uid_t uid = getuid();
     if (uid != csh->uid)
     {
         if (csh_init_env(csh) == NULL)
