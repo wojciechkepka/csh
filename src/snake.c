@@ -1,5 +1,4 @@
 #include "snake.h"
-#include <fcntl.h>
 
 #define UPDATE_TIME 220
 #define FOOD_SPAWN_RATE 2
@@ -191,20 +190,90 @@ SnakeChunk *spawn_snake(Board *b)
     return new_snakechunk(x, y, HEAD);
 }
 
+typedef struct String
+{
+    char *buf;
+    size_t capacity;
+    int len;
+} String;
+
+String *empty_str(size_t capacity)
+{
+    String *str = malloc(sizeof(String));
+    if (!str) return NULL;
+    str->buf = malloc(capacity * sizeof(char));
+    if (!str->buf) return NULL;
+    str->capacity = capacity;
+    str->len = 0;
+    str->buf[0] = '\0';
+
+    return str;
+}
+
+void free_str(String *str)
+{
+    free(str->buf);
+    free(str);
+}
+
+void append_str(String *str, const char *format, ...)
+{
+    va_list args;
+    char *s;
+
+    va_start (args, format);
+    vasprintf(&s, format, args);
+    va_end (args);
+
+    if (str->len + strlen(s) >= str->capacity)
+    {
+        str->capacity += str->capacity;
+        str->buf = realloc(str->buf, str->capacity);
+    }
+
+    str->len += sprintf(str->buf + str->len, "%s", s);
+    str->buf[str->len] = '\0';
+    free(s);
+}
+
 void draw_board(Board *b)
 {
-    int i;
+    int y, x;
     char border[b->x];
-    for (i = 0; i < b->x + 2; i++) border[i] = '-';
+    String *s = empty_str(b->x * b->y);
+    for (x = 0; x < b->x + 2; x++) border[x] = '-';
 
-    printf("%s", border);
-    printf("%s\033[%dD", ANSI_CUR_LINE_DOWN("1"), b->x + 2);
-    for (int i = 0; i < b->y; i++)
+    append_str(s, "%s%s%s%s", ANSI_BOLD, ANSI_256_B("15"), border, ANSI_RESET_STYLE);
+    append_str(s, "%s\033[%dD", ANSI_CUR_LINE_DOWN("1"), b->x + 2);
+    for (y = 0; y < b->y; y++)
     {
-        printf("|%s|", b->board[i]);
-        printf("%s\033[%dD", ANSI_CUR_LINE_DOWN("1"), b->x + 2);
+        append_str(s, "%s%s|%s", ANSI_BOLD, ANSI_256_B("15"), ANSI_RESET_STYLE);
+        for (x = 0; x < b->x; x++)
+        {
+            switch (b->board[y][x])
+            {
+                case SNAKE:
+                    append_str(s, "%s%c%s", ANSI_256_F("120"), SNAKE, ANSI_RESET_STYLE);
+                    break;
+                case SNAKE_HEAD:
+                    append_str(s, "%s%c%s", ANSI_256_F("9"), SNAKE_HEAD, ANSI_RESET_STYLE);
+                    break;
+                case FOOD:
+                    append_str(s, "%s%c%s", ANSI_256_F("32"), FOOD, ANSI_RESET_STYLE);
+                    break;
+
+                default:
+                    append_str(s, "%c", b->board[y][x]);
+            }
+        }
+        append_str(s, "%s%s|%s", ANSI_BOLD, ANSI_256_B("15"), ANSI_RESET_STYLE);
+        append_str(s, "%s\033[%dD", ANSI_CUR_LINE_DOWN("1"), b->x + 2);
     }
-    printf("%s", border);
+    append_str(s, "%s%s%s%s", ANSI_BOLD, ANSI_256_B("15"), border, ANSI_RESET_STYLE);
+
+    printf("%s", s->buf);
+
+    free_str(s);
 }
 
 void *read_user_inp(void *vargp)
