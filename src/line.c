@@ -158,6 +158,7 @@ csh_readline(Csh *csh)
     }
     int lines_pos = csh->hist->back;
     char *buf, *line = malloc(bufsize * sizeof(char));
+    line[0] = '\0';
     buf = line;
     if (!line) return NULL;
     char cols[256];
@@ -183,13 +184,14 @@ csh_readline(Csh *csh)
                 if (lines_pos < csh->hist->back)
                 {
                     lines_pos++;
-                    if (lines_pos == csh->hist->back) buf = line;
+                    if (lines_pos == csh->hist->back)
+                    {
+                        buf = line;
+                    }
                     else buf = lines[lines_pos];
-                    sprintf(cols, "%ld\0", pos);
-                    write(STDOUT_FILENO, "\033[", 2);
-                    write(STDOUT_FILENO, cols, strlen(cols));
-                    write(STDOUT_FILENO, "D", 1);
+                    write(STDOUT_FILENO, ANSI_CUR_COL("0"), 4);
                     write(STDOUT_FILENO, ANSI_CLL_EOL, 4);
+                    prompt_print(stdout, csh->prompt);
                     pos = write(STDOUT_FILENO, buf, strlen(buf));
                     max_pos = pos;
                     fflush(stdin);
@@ -201,11 +203,9 @@ csh_readline(Csh *csh)
                 {
                     lines_pos--;
                     buf = lines[lines_pos];
-                    sprintf(cols, "%ld\0", pos);
-                    write(STDOUT_FILENO, "\033[", 2);
-                    write(STDOUT_FILENO, cols, strlen(cols));
-                    write(STDOUT_FILENO, "D", 1);
+                    write(STDOUT_FILENO, ANSI_CUR_COL("0"), 4);
                     write(STDOUT_FILENO, ANSI_CLL_EOL, 4);
+                    prompt_print(stdout, csh->prompt);
                     pos = write(STDOUT_FILENO, buf, strlen(buf));
                     max_pos = pos;
                     fflush(stdin);
