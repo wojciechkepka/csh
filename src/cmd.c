@@ -12,6 +12,7 @@ const char *builtin_commands[] =
     "export",
     "unset",
     "history",
+    "snake",
 };
 
 int (*builtin_funcs[]) (Csh *, char **) =
@@ -23,6 +24,7 @@ int (*builtin_funcs[]) (Csh *, char **) =
     &csh_export,
     &csh_unset,
     &csh_history,
+    &play_snake,
 };
 
 
