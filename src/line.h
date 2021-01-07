@@ -10,6 +10,7 @@
 #include <signal.h>
 #include "prompt.h"
 #include "csh.h"
+#include "ansi.h"
 
 #define CSH_INP_BUF_SIZE 1024
 #define CSH_TOK_BUF_SIZE 64

@@ -1,10 +1,5 @@
 #include "line.h"
 
-const char *CLEAR_BACK_CHAR_SEQ = "\b\b\b   \b\b\b";
-const char *CLEAR_SCREEN_ANSI = "\033[1;1H\033[2J";
-const char *ANSI_COL_RIGHT = "\033[1C";
-const char *ANSI_COL_LEFT = "\033[1D";
-
 
 void 
 csh_disable_raw_mode(void)
@@ -34,7 +29,7 @@ csh_enable_raw_mode(void)
 void
 csh_clear(void)
 {
-    write(STDIN_FILENO, CLEAR_SCREEN_ANSI, 10);
+    write(STDIN_FILENO, ANSI_CUR_HOME ANSI_CLS, 10);
 }
 
 int
@@ -176,7 +171,7 @@ csh_readline(Csh *csh)
             case ARROW_LEFT:
                 if (pos > 0)
                 {
-                    write(STDIN_FILENO, ANSI_COL_LEFT, 4);
+                    write(STDIN_FILENO, ANSI_CUR_COL_LEFT("1"), 4);
                     pos--;
                 }
                 continue;
@@ -184,7 +179,7 @@ csh_readline(Csh *csh)
             case ARROW_RIGHT:
                 if (pos < max_pos)
                 {
-                    write(STDIN_FILENO, ANSI_COL_RIGHT, 4);
+                    write(STDIN_FILENO, ANSI_CUR_COL_RIGHT("1"), 4);
                     pos++;
                 }
                 goto fix_pos;
