@@ -7,6 +7,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/ioctl.h>
 #include "csh.h"
 #include "ansi.h"
 #include "line.h"

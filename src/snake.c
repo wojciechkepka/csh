@@ -1,8 +1,9 @@
 #include "snake.h"
+#include <fcntl.h>
 
 #define UPDATE_TIME 220
 #define FOOD_SPAWN_RATE 2
-#define BOARD_SIZE 40
+#define BOARD_SIZE 40 // default board size if get_screen_size fails
 
 static volatile int USER_INPUT;
 static volatile bool READ_INPUT = true;
@@ -14,6 +15,25 @@ void ms_sleep(int ms)
     ts.tv_sec = ms / 1000;
     ts.tv_nsec = (ms % 1000) * 1000000;
     nanosleep(&ts, NULL);
+}
+
+size_t* get_screen_size()
+{
+  size_t* result = malloc(sizeof(size_t) * 2);
+  if(!result) return NULL;
+
+  struct winsize ws;
+  int fd;
+
+  fd = open("/dev/tty", O_RDWR);
+  if(fd < 0 || ioctl(fd, TIOCGWINSZ, &ws) < 0) err(8, "/dev/tty");
+
+  result[0] = ws.ws_row;
+  result[1] = ws.ws_col;
+
+  close(fd);
+
+  return result;
 }
 
 typedef enum BoardElem
@@ -105,21 +125,22 @@ void free_snake(SnakeChunk *head)
 
 typedef struct Board
 {
-    int x;
+    int x, y;
     char **board;
 } Board;
 
-Board *new_board(int x)
+Board *new_board(int x, int y)
 {
     Board *b = malloc(sizeof(Board));
     if(!b) return NULL;
 
     b->x = x;
-    b->board = malloc(x * sizeof(char *));
+    b->y = y;
+    b->board = malloc(y * sizeof(char *));
     if (!b->board) return NULL;
 
     int i, j;
-    for(i = 0; i < x; i++)
+    for(i = 0; i < y; i++)
     {
         b->board[i] = malloc((x + 1) * sizeof(char));
         if(b->board[i] == NULL) return NULL;
@@ -132,7 +153,7 @@ Board *new_board(int x)
 
 void free_board(Board *b)
 {
-    for(int i = 0; i < b->x; i++)
+    for(int i = 0; i < b->y; i++)
     {
         free(b->board[i]);
     }
@@ -142,7 +163,7 @@ void free_board(Board *b)
 
 bool is_border(Board *b, int x, int y)
 {
-    return x == b->x || y == b->x || x == -1 || y == -1;
+    return x == b->x || y == b->y || x == -1 || y == -1;
 }
 
 void spawn_food(Board *b)
@@ -151,7 +172,7 @@ void spawn_food(Board *b)
     while (true)
     {
         x = rand() % b->x;
-        y = rand() % b->x;
+        y = rand() % b->y;
 
         if (b->board[y][x] == EMPTY)
         {
@@ -164,7 +185,7 @@ void spawn_food(Board *b)
 SnakeChunk *spawn_snake(Board *b)
 {
     int x = b->x / 2;
-    int y = b->x / 2;
+    int y = b->y / 2;
 
     b->board[y][x] = SNAKE_HEAD;
     return new_snakechunk(x, y, HEAD);
@@ -178,7 +199,7 @@ void draw_board(Board *b)
 
     printf("%s", border);
     printf("%s\033[%dD", ANSI_CUR_LINE_DOWN("1"), b->x + 2);
-    for (int i = 0; i < b->x; i++)
+    for (int i = 0; i < b->y; i++)
     {
         printf("|%s|", b->board[i]);
         printf("%s\033[%dD", ANSI_CUR_LINE_DOWN("1"), b->x + 2);
@@ -233,7 +254,15 @@ int play_snake(Csh *csh, char **args)
 {
     pthread_t tid;
     srand(time(NULL));
-    Board *b = new_board(BOARD_SIZE);
+    size_t *screen_size = get_screen_size();
+    if (screen_size == NULL)
+    {
+        screen_size = malloc(2 * sizeof(size_t));
+        if (!screen_size) return 1;
+        screen_size[0] = BOARD_SIZE;
+        screen_size[1] = BOARD_SIZE;
+    }
+    Board *b = new_board(screen_size[1] - 3, screen_size[0] - 3);
     SnakeChunk *head = spawn_snake(b), *chunk, *last;
     head->direction = UP;
     char choice;
@@ -323,6 +352,7 @@ int play_snake(Csh *csh, char **args)
     csh_disable_raw_mode();
     printf("Game over!\n");
     free_board(b);
+    free(screen_size);
     pthread_join(tid, NULL);
     fflush(stdout);
     fflush(stdin);
