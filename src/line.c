@@ -29,7 +29,7 @@ csh_enable_raw_mode(void)
 void
 csh_clear(void)
 {
-    write(STDIN_FILENO, ANSI_CUR_HOME ANSI_CLS, 10);
+    write(STDOUT_FILENO, ANSI_CUR_HOME ANSI_CLS, 10);
 }
 
 int
@@ -141,7 +141,25 @@ char *
 csh_readline(Csh *csh)
 {
     size_t bufsize = CSH_INP_BUF_SIZE;
-    char *buf = malloc(bufsize * sizeof(int));
+    char **lines = malloc(csh->hist->capacity * sizeof(char *));
+    if (!lines) return NULL;
+    for (int i = 0; i < csh->hist->capacity; i++)
+    {
+        lines[i] = malloc(bufsize * sizeof(int));
+        if (!lines[i]) return NULL;
+        if (i < csh->hist->back)
+        {
+            strcpy(lines[i], csh->hist->elems[i]);
+        }
+        else
+        {
+            lines[i][0] = '\0';
+        }
+    }
+    int lines_pos = csh->hist->back;
+    char *buf, *line = malloc(bufsize * sizeof(char));
+    buf = line;
+    if (!line) return NULL;
     char cols[256];
 
     if (!buf)
@@ -162,7 +180,38 @@ csh_readline(Csh *csh)
                 free(buf);
                 return NULL;
             case ARROW_DOWN:
+                if (lines_pos < csh->hist->back)
+                {
+                    lines_pos++;
+                    if (lines_pos == csh->hist->back) buf = line;
+                    else buf = lines[lines_pos];
+                    sprintf(cols, "%ld\0", pos);
+                    write(STDOUT_FILENO, "\033[", 2);
+                    write(STDOUT_FILENO, cols, strlen(cols));
+                    write(STDOUT_FILENO, "D", 1);
+                    write(STDOUT_FILENO, ANSI_CLL_EOL, 4);
+                    pos = write(STDOUT_FILENO, buf, strlen(buf));
+                    max_pos = pos;
+                    fflush(stdin);
+                    fflush(stdout);
+                }
+                continue;
             case ARROW_UP:
+                if (lines_pos > 0)
+                {
+                    lines_pos--;
+                    buf = lines[lines_pos];
+                    sprintf(cols, "%ld\0", pos);
+                    write(STDOUT_FILENO, "\033[", 2);
+                    write(STDOUT_FILENO, cols, strlen(cols));
+                    write(STDOUT_FILENO, "D", 1);
+                    write(STDOUT_FILENO, ANSI_CLL_EOL, 4);
+                    pos = write(STDOUT_FILENO, buf, strlen(buf));
+                    max_pos = pos;
+                    fflush(stdin);
+                    fflush(stdout);
+                }
+                continue;
             case PAGE_UP:
             case PAGE_DOWN:
             case DISABLED:
@@ -171,7 +220,7 @@ csh_readline(Csh *csh)
             case ARROW_LEFT:
                 if (pos > 0)
                 {
-                    write(STDIN_FILENO, ANSI_CUR_COL_LEFT("1"), 4);
+                    write(STDOUT_FILENO, ANSI_CUR_COL_LEFT("1"), 4);
                     pos--;
                 }
                 continue;
@@ -179,7 +228,7 @@ csh_readline(Csh *csh)
             case ARROW_RIGHT:
                 if (pos < max_pos)
                 {
-                    write(STDIN_FILENO, ANSI_CUR_COL_RIGHT("1"), 4);
+                    write(STDOUT_FILENO, ANSI_CUR_COL_RIGHT("1"), 4);
                     pos++;
                 }
                 goto fix_pos;
@@ -188,9 +237,9 @@ csh_readline(Csh *csh)
                 if (pos > 0)
                 {
                     sprintf(cols, "%ld", pos);
-                    write(STDIN_FILENO, "\033[", 2);
-                    write(STDIN_FILENO, cols, strlen(cols));
-                    write(STDIN_FILENO, "D", 1);
+                    write(STDOUT_FILENO, "\033[", 2);
+                    write(STDOUT_FILENO, cols, strlen(cols));
+                    write(STDOUT_FILENO, "D", 1);
                     pos = 0;
                 }
                 continue;
@@ -200,9 +249,9 @@ csh_readline(Csh *csh)
                 if (pos < max_pos)
                 {
                     sprintf(cols, "%ld", max_pos - pos);
-                    write(STDIN_FILENO, "\033[", 2);
-                    write(STDIN_FILENO, cols, strlen(cols));
-                    write(STDIN_FILENO, "C", 1);
+                    write(STDOUT_FILENO, "\033[", 2);
+                    write(STDOUT_FILENO, cols, strlen(cols));
+                    write(STDOUT_FILENO, "C", 1);
                     pos = max_pos;
                 }
                 continue;
