@@ -10,8 +10,8 @@ WARNINGS := -Wall -Wextra -pedantic -Wshadow -Wpointer-arith -Wcast-align \
             -Wwrite-strings -Wmissing-prototypes -Wmissing-declarations \
             -Wredundant-decls -Wnested-externs -Winline -Wno-long-long \
             -Wconversion -Wstrict-prototypes
-CFLAGS := -g $(WARNINGS)
-CFLAGS_RELEASE := -fPIC -O3 $(WARNINGS)
+CFLAGS := -std=gnu11 -g $(WARNINGS)
+CFLAGS_RELEASE := -std=gnu11 -fPIC -O3 $(WARNINGS)
 PROJDIRS := ../src
 SRCFILES := $(shell find $(PROJDIRS) -type f -name "*.c")
 HDRFILES := $(shell find $(PROJDIRS) -type f -name "*.h")
@@ -39,4 +39,4 @@ link_release:
 	$(CC) $(CFLAGS_RELEASE) -o $(BINFILE) $(OBJFILES)
 
 clean:
-	$(RM) $(OBJFILES) $(BINFILE) $(GCHFILES)
+	$(RM) $(OBJFILES) $(GCHFILES) ../bin/*
