@@ -143,7 +143,7 @@ csh_readline(Csh *csh)
     size_t bufsize = CSH_INP_BUF_SIZE;
     char **lines = malloc(csh->hist->capacity * sizeof(char *));
     if (!lines) return NULL;
-    for (int i = 0; i < csh->hist->capacity; i++)
+    for (size_t i = 0; i < csh->hist->capacity; i++)
     {
         lines[i] = malloc(bufsize * sizeof(int));
         if (!lines[i]) return NULL;
@@ -156,7 +156,7 @@ csh_readline(Csh *csh)
             lines[i][0] = '\0';
         }
     }
-    int lines_pos = csh->hist->back;
+    size_t lines_pos = csh->hist->back;
     char *buf, *line = malloc(bufsize * sizeof(char));
     line[0] = '\0';
     buf = line;
@@ -169,6 +169,7 @@ csh_readline(Csh *csh)
     }
     int key;
     size_t pos = 0, max_pos = 0;
+    ssize_t ret;
 
     prompt_print(stdout, csh->prompt);
     csh_enable_raw_mode();
@@ -184,15 +185,20 @@ csh_readline(Csh *csh)
                 if (lines_pos < csh->hist->back)
                 {
                     lines_pos++;
-                    if (lines_pos == csh->hist->back)
-                    {
-                        buf = line;
-                    }
-                    else buf = lines[lines_pos];
+                    buf = lines_pos == csh->hist->back ? line : lines[lines_pos];
                     write(STDOUT_FILENO, ANSI_CUR_COL("0"), 4);
                     write(STDOUT_FILENO, ANSI_CLL_EOL, 4);
                     prompt_print(stdout, csh->prompt);
-                    pos = write(STDOUT_FILENO, buf, strlen(buf));
+                    ret = write(STDOUT_FILENO, buf, strlen(buf));
+                    if (ret < 0)
+                    {
+                        return NULL;
+                    }
+                    else
+                    {
+                        pos = (size_t)ret;
+                    }
+                    
                     max_pos = pos;
                     fflush(stdin);
                     fflush(stdout);
@@ -206,7 +212,15 @@ csh_readline(Csh *csh)
                     write(STDOUT_FILENO, ANSI_CUR_COL("0"), 4);
                     write(STDOUT_FILENO, ANSI_CLL_EOL, 4);
                     prompt_print(stdout, csh->prompt);
-                    pos = write(STDOUT_FILENO, buf, strlen(buf));
+                    ret = write(STDOUT_FILENO, buf, strlen(buf));
+                    if (ret < 0)
+                    {
+                        return NULL;
+                    }
+                    else
+                    {
+                        pos = (size_t)ret;
+                    }
                     max_pos = pos;
                     fflush(stdin);
                     fflush(stdout);

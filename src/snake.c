@@ -1,5 +1,9 @@
 #include "snake.h"
 
+
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-function"
+
 #define UPDATE_TIME 220
 #define FOOD_SPAWN_RATE 2
 #define BOARD_SIZE 40 // default board size if get_screen_size fails
@@ -8,7 +12,7 @@ static volatile int USER_INPUT;
 static volatile bool READ_INPUT = true;
 
 
-void ms_sleep(int ms)
+static void ms_sleep(const int ms)
 {
     struct timespec ts;
     ts.tv_sec = ms / 1000;
@@ -16,7 +20,7 @@ void ms_sleep(int ms)
     nanosleep(&ts, NULL);
 }
 
-size_t* get_screen_size()
+static size_t* get_screen_size()
 {
   size_t* result = malloc(sizeof(size_t) * 2);
   if(!result) return NULL;
@@ -25,7 +29,7 @@ size_t* get_screen_size()
   int fd;
 
   fd = open("/dev/tty", O_RDWR);
-  if(fd < 0 || ioctl(fd, TIOCGWINSZ, &ws) < 0) err(8, "/dev/tty");
+  if(fd < 0 || ioctl(fd, TIOCGWINSZ, &ws) < 0) return NULL;
 
   result[0] = ws.ws_row;
   result[1] = ws.ws_col;
@@ -59,14 +63,14 @@ typedef enum ChunkType
 
 typedef struct SnakeChunk
 {
-    int x, y;
+    size_t x, y;
     ChunkType ty;
     Direction direction;
     struct SnakeChunk *parent;
     struct SnakeChunk *child;
 } SnakeChunk;
 
-SnakeChunk *new_snakechunk(int x, int y, ChunkType ty)
+static SnakeChunk *new_snakechunk(const size_t x, const size_t y, const ChunkType ty)
 {
     SnakeChunk *s = malloc(sizeof(SnakeChunk));
     if (!s) return NULL;
@@ -82,7 +86,7 @@ SnakeChunk *new_snakechunk(int x, int y, ChunkType ty)
 
 }
 
-void move_snakechunk(SnakeChunk *chunk)
+static void move_snakechunk(SnakeChunk *chunk)
 {
     switch (chunk->direction)
     {
@@ -93,14 +97,14 @@ void move_snakechunk(SnakeChunk *chunk)
     }
 }
 
-void join_chunks(SnakeChunk *head, SnakeChunk *tail)
+static void join_chunks(SnakeChunk *head, SnakeChunk *tail)
 {
     head->child = tail;
     tail->parent = head;
     tail->child = NULL;
 }
 
-void add_snakechunk(SnakeChunk *head, SnakeChunk *add)
+static void add_snakechunk(SnakeChunk *head, SnakeChunk *add)
 {
     SnakeChunk *chunk = head->child;
     do {} while ((chunk = chunk->child) != NULL);
@@ -110,7 +114,7 @@ void add_snakechunk(SnakeChunk *head, SnakeChunk *add)
     add->direction = chunk->direction;
 }
 
-void free_snake(SnakeChunk *head)
+static void free_snake(SnakeChunk *head)
 {
     SnakeChunk *chunk = head->child;
     do
@@ -124,11 +128,11 @@ void free_snake(SnakeChunk *head)
 
 typedef struct Board
 {
-    int x, y;
+    size_t x, y;
     char **board;
 } Board;
 
-Board *new_board(int x, int y)
+static Board *new_board(const size_t x, const size_t y)
 {
     Board *b = malloc(sizeof(Board));
     if(!b) return NULL;
@@ -138,7 +142,7 @@ Board *new_board(int x, int y)
     b->board = malloc(y * sizeof(char *));
     if (!b->board) return NULL;
 
-    int i, j;
+    size_t i, j;
     for(i = 0; i < y; i++)
     {
         b->board[i] = malloc((x + 1) * sizeof(char));
@@ -150,9 +154,9 @@ Board *new_board(int x, int y)
     return b;
 }
 
-void free_board(Board *b)
+static void free_board(Board *b)
 {
-    for(int i = 0; i < b->y; i++)
+    for(size_t i = 0; i < b->y; i++)
     {
         free(b->board[i]);
     }
@@ -160,18 +164,18 @@ void free_board(Board *b)
     free(b);
 }
 
-bool is_border(Board *b, int x, int y)
+static bool is_border(const Board *b, const size_t x, const size_t y)
 {
-    return x == b->x || y == b->y || x == -1 || y == -1;
+    return x == b->x || y == b->y || x == 0 || y == 0;
 }
 
-void spawn_food(Board *b)
+static void spawn_food(Board *b)
 {
-    int x, y;
+    size_t x, y;
     while (true)
     {
-        x = rand() % b->x;
-        y = rand() % b->y;
+        x = random() % b->x;
+        y = random() % b->y;
 
         if (b->board[y][x] == EMPTY)
         {
@@ -181,64 +185,18 @@ void spawn_food(Board *b)
     }
 }
 
-SnakeChunk *spawn_snake(Board *b)
+static SnakeChunk *spawn_snake(Board *b)
 {
-    int x = b->x / 2;
-    int y = b->y / 2;
+    size_t x = b->x / 2;
+    size_t y = b->y / 2;
 
     b->board[y][x] = SNAKE_HEAD;
     return new_snakechunk(x, y, HEAD);
 }
 
-typedef struct String
+static void draw_board(const Board *b)
 {
-    char *buf;
-    size_t capacity;
-    int len;
-} String;
-
-String *empty_str(size_t capacity)
-{
-    String *str = malloc(sizeof(String));
-    if (!str) return NULL;
-    str->buf = malloc(capacity * sizeof(char));
-    if (!str->buf) return NULL;
-    str->capacity = capacity;
-    str->len = 0;
-    str->buf[0] = '\0';
-
-    return str;
-}
-
-void free_str(String *str)
-{
-    free(str->buf);
-    free(str);
-}
-
-void append_str(String *str, const char *format, ...)
-{
-    va_list args;
-    char *s;
-
-    va_start (args, format);
-    vasprintf(&s, format, args);
-    va_end (args);
-
-    if (str->len + strlen(s) >= str->capacity)
-    {
-        str->capacity += str->capacity;
-        str->buf = realloc(str->buf, str->capacity);
-    }
-
-    str->len += sprintf(str->buf + str->len, "%s", s);
-    str->buf[str->len] = '\0';
-    free(s);
-}
-
-void draw_board(Board *b)
-{
-    int y, x;
+    size_t y, x;
     char border[b->x];
     String *s = empty_str(b->x * b->y);
     for (x = 0; x < b->x + 2; x++) border[x] = '-';
@@ -276,7 +234,7 @@ void draw_board(Board *b)
     free_str(s);
 }
 
-void *read_user_inp(void *vargp)
+static void *read_user_inp(void *vargp)
 {
     int key;
     while (READ_INPUT)
@@ -287,17 +245,19 @@ void *read_user_inp(void *vargp)
             USER_INPUT = key;
         }
     }
+
+    return NULL;
 }
 
-bool board_move_chunk(Board *b, SnakeChunk *chunk)
+static bool board_move_chunk(Board *b, SnakeChunk *chunk)
 {
-
-    b->board[chunk->y][chunk->x] = EMPTY;
-    move_snakechunk(chunk);            
     if (is_border(b, chunk->x, chunk->y))
     {
         return false;
     }
+
+    b->board[chunk->y][chunk->x] = EMPTY;
+    move_snakechunk(chunk);            
 
 
     if (chunk->ty == HEAD) b->board[chunk->y][chunk->x] = SNAKE_HEAD;
@@ -306,7 +266,7 @@ bool board_move_chunk(Board *b, SnakeChunk *chunk)
     return true;
 }
 
-bool board_is_ty(Board *b, int x, int y, Direction d, BoardElem ty)
+static bool board_is_ty(Board *b, size_t x, size_t y, Direction d, BoardElem ty)
 {
     switch (d)
     {
@@ -316,13 +276,13 @@ bool board_is_ty(Board *b, int x, int y, Direction d, BoardElem ty)
         case RIGHT: x++; break;
     }
     if (is_border(b, x, y)) return false;
-    return b->board[y][x] == ty;
+    return (BoardElem)b->board[y][x] == ty;
 }
 
 int play_snake(Csh *csh, char **args)
 {
     pthread_t tid;
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
     size_t *screen_size = get_screen_size();
     if (screen_size == NULL)
     {
@@ -334,9 +294,8 @@ int play_snake(Csh *csh, char **args)
     Board *b = new_board(screen_size[1] - 3, screen_size[0] - 3);
     SnakeChunk *head = spawn_snake(b), *chunk, *last;
     head->direction = UP;
-    char choice;
     bool grow = false, game_lost = false;
-    int old_x, old_y;
+    size_t old_x, old_y;
     Direction old_dir;
 
     pthread_create(&tid, NULL, read_user_inp, NULL);
@@ -420,9 +379,12 @@ int play_snake(Csh *csh, char **args)
     printf("%s%s", ANSI_CUR_HOME, ANSI_CLS);
     csh_disable_raw_mode();
     printf("Game over!\n");
+    free_snake(head);
     free_board(b);
     free(screen_size);
     pthread_join(tid, NULL);
     fflush(stdout);
     fflush(stdin);
+
+    return -1;
 }

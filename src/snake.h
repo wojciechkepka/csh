@@ -8,9 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/ioctl.h>
-#include <string.h>
-#include <fcntl.h>
-#include <stdarg.h>
+#include "str.h"
 #include "csh.h"
 #include "ansi.h"
 #include "line.h"
